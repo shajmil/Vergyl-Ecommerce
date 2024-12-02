@@ -1,0 +1,957 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E-Commerce API",
+    "version": "1.0.0",
+    "description": "API documentation for E-Commerce application"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Preview",
+      "description": "Link preview generation"
+    },
+    {
+      "name": "Profile",
+      "description": "User profile management"
+    },
+    {
+      "name": "Address",
+      "description": "User address management"
+    },
+    {
+      "name": "Orders",
+      "description": "Order management"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin operations"
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "phone", "password"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          }
+        }
+      }
+    },
+    "/auth/verify_otp": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verify OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["phone", "otp"],
+                "properties": {
+                  "phone": {
+                    "type": "string"
+                  },
+                  "otp": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified successfully"
+          }
+        }
+      }
+    },
+    "/auth/reset_password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          }
+        }
+      }
+    },
+    "/preview": {
+      "post": {
+        "tags": ["Preview"],
+        "summary": "Generate link preview",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preview generated successfully"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get user profile",
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully"
+          }
+        }
+      }
+    },
+    "/profile/update": {
+      "put": {
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update user profile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          }
+        }
+      }
+    },
+    "/address": {
+      "get": {
+        "tags": ["Address"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get user addresses",
+        "responses": {
+          "200": {
+            "description": "Addresses retrieved successfully"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Address"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Add new address",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address_line", "city", "state", "zip_code", "country"],
+                "properties": {
+                  "address_line": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "zip_code": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Address added successfully"
+          }
+        }
+      }
+    },
+    "/address/{id}": {
+      "put": {
+        "tags": ["Address"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update address",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "address_line": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "zip_code": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Address"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Delete address",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address deleted successfully"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get user orders",
+        "responses": {
+          "200": {
+            "description": "Orders retrieved successfully"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Create new order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address_id", "items"],
+                "properties": {
+                  "address_id": {
+                    "type": "integer"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["product_id", "quantity"],
+                      "properties": {
+                        "product_id": {
+                          "type": "integer"
+                        },
+                        "quantity": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  },
+                  "delivery_time": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created successfully"
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get order details",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details retrieved successfully"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Orders"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update order delivery time",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["delivery_time"],
+                "properties": {
+                  "delivery_time": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order delivery time updated successfully"
+          }
+        }
+      }
+    },
+    "/admin/orders": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get all orders (Admin)",
+        "responses": {
+          "200": {
+            "description": "Orders retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/orders/{id}": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get order details (Admin)",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/orders/{id}/status": {
+      "put": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update order status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["Pending", "Processed", "Shipped", "Delivered", "Canceled"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order status updated successfully"
+          }
+        }
+      }
+    },
+    "/admin/orders/{id}/schedule": {
+      "put": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update order schedule",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["delivery_time"],
+                "properties": {
+                  "delivery_time": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order schedule updated successfully"
+          }
+        }
+      }
+    },
+    "/admin/products": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get all products (Admin)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Add new product",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "price", "stock", "category"],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "stock": {
+                    "type": "integer"
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product added successfully"
+          }
+        }
+      }
+    },
+    "/admin/products/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Update product",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "stock": {
+                    "type": "integer"
+                  },
+                  "category": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Delete product",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully"
+          }
+        }
+      }
+    },
+    "/admin/customers": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get all customers",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customers retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/customers/{id}": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get customer details",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer details retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/reports/orders": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get order reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["Pending", "Processed", "Shipped", "Delivered", "Canceled"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order reports retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/reports/revenue": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get revenue reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "type": "string",
+              "enum": ["daily", "weekly", "monthly"],
+              "default": "daily"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revenue reports retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/reports/products": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get product reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product reports retrieved successfully"
+          }
+        }
+      }
+    },
+    "/admin/reports/customers": {
+      "get": {
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "summary": "Get customer reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer reports retrieved successfully"
+          }
+        }
+      }
+    }
+  }
+} 
