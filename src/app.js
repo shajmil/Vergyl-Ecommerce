@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
+const swaggerFile = require('./swagger/swagger-output.json');
 const { authMiddleware, adminMiddleware } = require('./middlewares/auth.middleware');
 const path = require('path');
 const logger = require('morgan');
@@ -17,21 +17,11 @@ app.use(cors());
 app.use(logger('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Swagger UI setup
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-    swaggerOptions: {
-        persistAuthorization: true
-    },
-  
-    customSiteTitle: "E-Commerce API Documentation"
-}));
+// Swagger setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
-// Root route
-app.use('/', (req, res) => {
-    res.sendFile(path.join(__dirname, './views/index.html'));
-});
+
 // Public routes
 app.use('/auth', require('./routes/auth.routes'));
 app.use('/preview', require('./routes/preview.routes'));
@@ -44,6 +34,14 @@ app.use('/orders', authMiddleware, require('./routes/order.routes'));
 // Admin routes (require admin authentication)
 app.use('/admin', [authMiddleware, adminMiddleware], require('./routes/admin.routes'));
 
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route for serving the landing page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+});
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);

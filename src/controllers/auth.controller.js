@@ -1,64 +1,142 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { successResponse, errorResponse } = require('../helpers/response.helper');
+const jwt = require('jsonwebtoken');
 
-const signup = async (req, res) => {
+const initiateLogin = async (req, res) => {
     try {
-        const { name, email, phone, password } = req.body;
-
+        const { email, phone, login_type, name } = req.body; // Add name to the request body
+        
+        // Validate input based on login type
+        const value = login_type === 'email' ? email : phone;
+        if (!value) {
+            return errorResponse(res, `${login_type} is required`, 400);
+        }
+        
         // Check if user exists
-        const existingUser = await getmultipleSP('check_existing_user', [email]);
-        if (existingUser[0] && existingUser[0].length > 0) {
-            return errorResponse(res, 'Email already registered');
+        const users = await getmultipleSP('check_user_exists', [value, login_type]);
+        let user = users[0][0];
+        console.log(user);
+        // If user doesn't exist, create new user
+        if (!user) {
+            const result = await executeTransaction('create_user', [
+                login_type === 'email' ? value : null, // email
+                login_type === 'phone' ? value : null, // phone
+                'customer',
+             
+            ]);
+            console.log(result);
+            user = {
+                user_id: result[0].user_id,
+                email: login_type === 'email' ? value : null,
+                phone: login_type === 'phone' ? value : null,
+                role: 'customer'
+            };
         }
 
-        // Hash password and create user
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await executeTransaction('signup', [
-            name, email, phone, hashedPassword, 'customer'
+        // Debugging: Log user_id
+        console.log('User ID:', user.user_id);
+
+        // Ensure user_id is not null
+        if (!user.user_id) {
+            return errorResponse(res, 'Failed to retrieve user ID', 500);
+        }
+
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Save OTP
+        await executeTransaction('save_otp', [
+            user.user_id,
+            otp
         ]);
 
+        // In production, send OTP via email/SMS based on login_type
+        return successResponse(res, 'OTP sent successfully', {
+            user_id: user.user_id,
+            [login_type]: value,
+            otp: otp // Remove in production
+        });
+
+    } catch (error) {
+        console.error('Login initiation error:', error);
+        return errorResponse(res, 'Failed to initiate login', 500);
+    }
+};
+
+const socialLogin = async (req, res) => {
+    try {
+        const { social_id, email, name, login_type } = req.body; // login_type: 'google' or 'apple'
+        
+        // Check if user exists with this social ID
+        const users = await getmultipleSP('check_social_user', [social_id, login_type]);
+        let user = users[0][0];
+        console.log('s',user);
+        // If user doesn't exist, create new user
+        if (!user) {
+            const result = await executeTransaction('create_social_user', [
+                social_id,
+                email,
+                name,
+                login_type,
+               
+            ]);
+            user = {
+                user_id: result[0].user_id,
+                email: email,
+                name: name,
+                role: 'customer'
+            };
+        }
+
+        // Generate JWT token
         const token = jwt.sign(
-            { user_id: result.user_id, email, role: 'customer' },
+            { 
+                user_id: user.user_id, 
+                email: user.email, 
+                role: user.role 
+            },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        return successResponse(res, 'User registered successfully', {
+        return successResponse(res, 'Login successful', {
             token,
             user: {
-                user_id: result.user_id,
-                name,
-                email,
-                phone,
-                role: 'customer'
+                user_id: user.user_id,
+                name: user.name,
+                email: user.email,
+                role: user.role
             }
-        }, 201);
+        });
+
     } catch (error) {
-        console.error('Signup error:', error);
-        return errorResponse(res, 'Failed to register user', 500);
+        console.error('Social login error:', error);
+        return errorResponse(res, 'Failed to process social login', 500);
     }
 };
 
-const login = async (req, res) => {
+const verifyOTP = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { user_id, otp } = req.body;
 
-        const users = await getmultipleSP('login', [email]);
+        // Verify OTP
+        const result = await executeTransaction('verify_otp', [user_id, otp]);
+        
+        if (!result[0].verified) {
+            return errorResponse(res, 'Invalid OTP', 400);
+        }
+
+        // Get user details
+        const users = await getmultipleSP('get_user_by_id', [user_id]);
         const user = users[0][0];
 
-        if (!user) {
-            return errorResponse(res, 'Invalid credentials', 401);
-        }
-
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return errorResponse(res, 'Invalid credentials', 401);
-        }
-
+        // Generate JWT token
         const token = jwt.sign(
-            { user_id: user.user_id, email: user.email, role: user.role },
+            { 
+                user_id: user.user_id, 
+                email: user.email, 
+                role: user.role 
+            },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
@@ -73,60 +151,15 @@ const login = async (req, res) => {
                 role: user.role
             }
         });
-    } catch (error) {
-        console.error('Login error:', error);
-        return errorResponse(res, 'Login failed', 500);
-    }
-};
 
-const verifyOTP = async (req, res) => {
-    try {
-        const { phone, otp } = req.body;
-        
-        // Verify OTP using stored procedure
-        const result = await executeTransaction('VerifyOTP', [phone, otp]);
-        
-        if (!result.verified) {
-            return res.status(400).json({ error: 'Invalid OTP' });
-        }
-
-        res.json({ message: 'OTP verified successfully' });
     } catch (error) {
         console.error('OTP verification error:', error);
-        res.status(500).json({ error: 'Failed to verify OTP' });
-    }
-};
-
-const resetPassword = async (req, res) => {
-    try {
-        const { email, newPassword } = req.body;
-
-        // Find user using stored procedure
-        const users = await getmultipleSP('FindUserByEmail', [email]);
-        if (!users[0] || users[0].length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password using stored procedure with transaction
-        const result = await executeTransaction('UpdateUserPassword', [email, hashedPassword]);
-        
-        if (!result.updated) {
-            throw new Error('Password update failed');
-        }
-
-        res.json({ message: 'Password reset successful' });
-    } catch (error) {
-        console.error('Password reset error:', error);
-        res.status(500).json({ error: 'Failed to reset password' });
+        return errorResponse(res, 'Failed to verify OTP', 500);
     }
 };
 
 module.exports = {
-    signup,
-    login,
-    verifyOTP,
-    resetPassword
+    initiateLogin,
+    socialLogin,
+    verifyOTP
 }; 

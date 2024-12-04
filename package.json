@@ -4,7 +4,8 @@
     "main": "app.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon src/app.js"
+        "start": "nodemon src/app.js",
+        "swagger-gen": "node src/swagger/swagger.generator.js"
     },
     "keywords": [],
     "author": "",
@@ -24,6 +25,7 @@
         "puppeteer": "^23.7.0",
         "puppeteer-extra": "^3.3.6",
         "puppeteer-extra-plugin-stealth": "^2.11.2",
+        "swagger-autogen": "^2.23.7",
         "swagger-ui-express": "^5.0.1"
     }
 }
