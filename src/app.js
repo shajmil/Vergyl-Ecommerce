@@ -28,6 +28,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
     customSiteTitle: "E-Commerce API Documentation"
 }));
 
+// Root route
+app.use('/', (req, res) => {
+    res.sendFile(path.join(__dirname, './views/index.html'));
+});
 // Public routes
 app.use('/auth', require('./routes/auth.routes'));
 app.use('/preview', require('./routes/preview.routes'));

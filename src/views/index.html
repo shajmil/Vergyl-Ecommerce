@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vergyl E-Commerce</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .feature {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: calc(30% - 20px);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        .feature h3 {
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+        .feature p {
+            color: #666;
+            line-height: 1.6;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .feature {
+                width: calc(100% - 40px);
+                margin: 10px 20px;
+            }
+            .hero h1 {
+                font-size: 2em;
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Welcome to Vergyl</h1>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>Your One-Stop E-Commerce Solution</h1>
+    </div>
+
+    <div class="container">
+        <div class="features">
+            <div class="feature">
+                <h3>Wide Range of Products</h3>
+                <p>Explore a vast collection of products across various categories. Find exactly what you need with our intuitive search and filtering options.</p>
+            </div>
+            <div class="feature">
+                <h3>Secure Payments</h3>
+                <p>Experience safe and secure transactions with our trusted payment gateways. Your financial security is our top priority.</p>
+            </div>
+            <div class="feature">
+                <h3>Fast Delivery</h3>
+                <p>Get your orders delivered quickly with our efficient delivery network. Track your packages in real-time.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Vergyl. All rights reserved.</p>
+    </footer>
+</body>
+</html>
