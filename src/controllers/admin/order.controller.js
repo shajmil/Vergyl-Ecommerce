@@ -1,86 +1,93 @@
 const { executeTransaction, getmultipleSP } = require('../../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../../helpers/response.helper');
 
 const get_all_orders = async (req, res) => {
     try {
-        const { status, start_date, end_date } = req.query;
-        const result = await getmultipleSP('get_all_orders', [status, start_date, end_date]);
-        res.json(result[0]);
+        const { status, start_date, end_date, limit, offset } = req.query;
+        const result = await getmultipleSP('get_all_orders', [
+            status || null,
+            start_date || null,
+            end_date || null,
+            limit || 10,
+            offset || 0
+        ]);
+
+        return successResponse(res, 'Orders retrieved successfully', {
+            orders: result[0],
+            total: result[1][0].total
+        });
     } catch (error) {
         console.error('Get all orders error:', error);
-        res.status(500).json({ error: 'Failed to fetch orders' });
+        return errorResponse(res, 'Failed to fetch orders', 500);
     }
 };
 
 const get_admin_order_details = async (req, res) => {
     try {
-        const orderId = req.params.id;
-        const result = await getmultipleSP('get_admin_order_details', [orderId]);
+        const order_id = req.params.id;
+        const result = await getmultipleSP('get_admin_order_details', [order_id]);
         
         if (!result[0] || result[0].length === 0) {
-            return res.status(404).json({ error: 'Order not found' });
+            return errorResponse(res, 'Order not found', 404);
         }
 
-        const order = result[0][0];
-        order.items = result[1];
-        order.history = result[2];
+        const orderDetails = {
+            ...result[0][0],
+            items: result[1],
+            customer: result[2][0],
+            address: result[3][0]
+        };
 
-        res.json(order);
+        return successResponse(res, 'Order details retrieved successfully', orderDetails);
     } catch (error) {
         console.error('Get admin order details error:', error);
-        res.status(500).json({ error: 'Failed to fetch order details' });
+        return errorResponse(res, 'Failed to fetch order details', 500);
     }
 };
 
 const update_order_status = async (req, res) => {
     try {
-        const orderId = req.params.id;
-        const { status, notes } = req.body;
-        const adminId = req.user.id;
+        const order_id = req.params.id;
+        const { status } = req.body;
+        const admin_id = req.user.user_id;
 
         const result = await executeTransaction('update_order_status', [
-            orderId,
+            order_id,
             status,
-            notes,
-            adminId
+            admin_id
         ]);
 
         if (!result.updated) {
-            return res.status(404).json({ error: 'Order not found' });
+            return errorResponse(res, 'Order not found', 404);
         }
 
-        res.json({ 
-            message: 'Order status updated successfully',
-            order: result.order
-        });
+        return successResponse(res, 'Order status updated successfully', result.order);
     } catch (error) {
         console.error('Update order status error:', error);
-        res.status(500).json({ error: 'Failed to update order status' });
+        return errorResponse(res, 'Failed to update order status', 500);
     }
 };
 
 const update_order_schedule = async (req, res) => {
     try {
-        const orderId = req.params.id;
+        const order_id = req.params.id;
         const { delivery_time } = req.body;
-        const adminId = req.user.id;
+        const admin_id = req.user.user_id;
 
         const result = await executeTransaction('update_order_schedule', [
-            orderId,
+            order_id,
             delivery_time,
-            adminId
+            admin_id
         ]);
 
         if (!result.updated) {
-            return res.status(404).json({ error: 'Order not found' });
+            return errorResponse(res, 'Order not found', 404);
         }
 
-        res.json({ 
-            message: 'Delivery schedule updated successfully',
-            order: result.order
-        });
+        return successResponse(res, 'Order schedule updated successfully', result.order);
     } catch (error) {
         console.error('Update order schedule error:', error);
-        res.status(500).json({ error: 'Failed to update delivery schedule' });
+        return errorResponse(res, 'Failed to update order schedule', 500);
     }
 };
 

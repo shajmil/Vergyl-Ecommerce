@@ -1,4 +1,4 @@
-const { executeTransaction, getmultipleSP } = require('../../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../../helpers/response.helper');
 
 const get_customers = async (req, res) => {
     try {
@@ -9,13 +9,13 @@ const get_customers = async (req, res) => {
             offset || 0
         ]);
 
-        res.json({
+        return successResponse(res, 'Customers retrieved successfully', {
             customers: result[0],
             total: result[1][0].total
         });
     } catch (error) {
         console.error('Get customers error:', error);
-        res.status(500).json({ error: 'Failed to fetch customers' });
+        return errorResponse(res, 'Failed to fetch customers', 500);
     }
 };
 
@@ -25,17 +25,19 @@ const get_customer_details = async (req, res) => {
         const result = await getmultipleSP('get_customer_details', [customer_id]);
 
         if (!result[0] || result[0].length === 0) {
-            return res.status(404).json({ error: 'Customer not found' });
+            return errorResponse(res, 'Customer not found', 404);
         }
 
-        const customer = result[0][0];
-        customer.orders = result[1];
-        customer.addresses = result[2];
+        const customerDetails = {
+            ...result[0][0],
+            orders: result[1],
+            addresses: result[2]
+        };
 
-        res.json(customer);
+        return successResponse(res, 'Customer details retrieved successfully', customerDetails);
     } catch (error) {
         console.error('Get customer details error:', error);
-        res.status(500).json({ error: 'Failed to fetch customer details' });
+        return errorResponse(res, 'Failed to fetch customer details', 500);
     }
 };
 

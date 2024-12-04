@@ -1,4 +1,5 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../helpers/response.helper');
 
 const create_order = async (req, res) => {
     try {
@@ -16,13 +17,10 @@ const create_order = async (req, res) => {
             delivery_time
         ]);
 
-        res.status(201).json({
-            message: 'Order created successfully',
-            order: result.order
-        });
+        return successResponse(res, 'Order created successfully', result.order, 201);
     } catch (error) {
         console.error('Create order error:', error);
-        res.status(500).json({ error: 'Failed to create order' });
+        return errorResponse(res, 'Failed to create order', 500);
     }
 };
 
@@ -30,10 +28,10 @@ const get_orders = async (req, res) => {
     try {
         const user_id = req.user.user_id;
         const result = await getmultipleSP('get_orders', [user_id]);
-        res.json(result[0]);
+        return successResponse(res, 'Orders retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get orders error:', error);
-        res.status(500).json({ error: 'Failed to fetch orders' });
+        return errorResponse(res, 'Failed to fetch orders', 500);
     }
 };
 
@@ -45,42 +43,41 @@ const get_order_details = async (req, res) => {
         const result = await getmultipleSP('get_order_details', [order_id, user_id]);
         
         if (!result[0] || result[0].length === 0) {
-            return res.status(404).json({ error: 'Order not found' });
+            return errorResponse(res, 'Order not found', 404);
         }
 
-        const order = result[0][0];
-        order.items = result[1];
+        const orderDetails = {
+            ...result[0][0],
+            items: result[1]
+        };
 
-        res.json(order);
+        return successResponse(res, 'Order details retrieved successfully', orderDetails);
     } catch (error) {
         console.error('Get order details error:', error);
-        res.status(500).json({ error: 'Failed to fetch order details' });
+        return errorResponse(res, 'Failed to fetch order details', 500);
     }
 };
 
 const update_order_delivery = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const orderId = req.params.id;
+        const user_id = req.user.user_id;
+        const order_id = req.params.id;
         const { delivery_time } = req.body;
 
         const result = await executeTransaction('update_order_delivery', [
-            orderId,
-            userId,
+            order_id,
+            user_id,
             delivery_time
         ]);
 
         if (!result.updated) {
-            return res.status(404).json({ error: 'Order not found' });
+            return errorResponse(res, 'Order not found', 404);
         }
 
-        res.json({ 
-            message: 'Delivery time updated successfully',
-            order: result.order
-        });
+        return successResponse(res, 'Order delivery time updated successfully', result.order);
     } catch (error) {
-        console.error('Update delivery time error:', error);
-        res.status(500).json({ error: 'Failed to update delivery time' });
+        console.error('Update order delivery error:', error);
+        return errorResponse(res, 'Failed to update order delivery time', 500);
     }
 };
 

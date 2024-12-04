@@ -1,4 +1,5 @@
 const { executeTransaction, getmultipleSP } = require('../../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../../helpers/response.helper');
 
 const get_products = async (req, res) => {
     try {
@@ -10,13 +11,13 @@ const get_products = async (req, res) => {
             offset || 0
         ]);
         
-        res.json({
+        return successResponse(res, 'Products retrieved successfully', {
             products: result[0],
             total: result[1][0].total
         });
     } catch (error) {
         console.error('Get products error:', error);
-        res.status(500).json({ error: 'Failed to fetch products' });
+        return errorResponse(res, 'Failed to fetch products', 500);
     }
 };
 
@@ -34,13 +35,10 @@ const add_product = async (req, res) => {
             admin_id
         ]);
 
-        res.status(201).json({
-            message: 'Product added successfully',
-            product: result
-        });
+        return successResponse(res, 'Product added successfully', result, 201);
     } catch (error) {
         console.error('Add product error:', error);
-        res.status(500).json({ error: 'Failed to add product' });
+        return errorResponse(res, 'Failed to add product', 500);
     }
 };
 
@@ -61,34 +59,31 @@ const update_product = async (req, res) => {
         ]);
 
         if (!result.updated) {
-            return res.status(404).json({ error: 'Product not found' });
+            return errorResponse(res, 'Product not found', 404);
         }
 
-        res.json({
-            message: 'Product updated successfully',
-            product: result
-        });
+        return successResponse(res, 'Product updated successfully', result.product);
     } catch (error) {
         console.error('Update product error:', error);
-        res.status(500).json({ error: 'Failed to update product' });
+        return errorResponse(res, 'Failed to update product', 500);
     }
 };
 
 const delete_product = async (req, res) => {
     try {
-        const productId = req.params.id;
-        const adminId = req.user.id;
+        const product_id = req.params.id;
+        const admin_id = req.user.user_id;
 
-        const result = await executeTransaction('delete_product', [productId, adminId]);
+        const result = await executeTransaction('delete_product', [product_id, admin_id]);
 
         if (!result.deleted) {
-            return res.status(404).json({ error: 'Product not found' });
+            return errorResponse(res, 'Product not found', 404);
         }
 
-        res.json({ message: 'Product deleted successfully' });
+        return successResponse(res, 'Product deleted successfully');
     } catch (error) {
         console.error('Delete product error:', error);
-        res.status(500).json({ error: 'Failed to delete product' });
+        return errorResponse(res, 'Failed to delete product', 500);
     }
 };
 

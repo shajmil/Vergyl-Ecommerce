@@ -1,13 +1,14 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../helpers/response.helper');
 
 const get_addresses = async (req, res) => {
     try {
         const user_id = req.user.user_id;
         const result = await getmultipleSP('get_addresses', [user_id]);
-        res.json(result[0]);
+        return successResponse(res, 'Addresses retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get addresses error:', error);
-        res.status(500).json({ error: 'Failed to fetch addresses' });
+        return errorResponse(res, 'Failed to fetch addresses', 500);
     }
 };
 
@@ -25,13 +26,10 @@ const add_address = async (req, res) => {
             country
         ]);
 
-        res.status(201).json({
-            message: 'Address added successfully',
-            address: result
-        });
+        return successResponse(res, 'Address added successfully', result, 201);
     } catch (error) {
         console.error('Add address error:', error);
-        res.status(500).json({ error: 'Failed to add address' });
+        return errorResponse(res, 'Failed to add address', 500);
     }
 };
 
@@ -52,16 +50,13 @@ const update_address = async (req, res) => {
         ]);
 
         if (!result.updated) {
-            return res.status(404).json({ error: 'Address not found' });
+            return errorResponse(res, 'Address not found', 404);
         }
 
-        res.json({ 
-            message: 'Address updated successfully',
-            address: result.address
-        });
+        return successResponse(res, 'Address updated successfully', result.address);
     } catch (error) {
         console.error('Update address error:', error);
-        res.status(500).json({ error: 'Failed to update address' });
+        return errorResponse(res, 'Failed to update address', 500);
     }
 };
 
@@ -73,13 +68,13 @@ const delete_address = async (req, res) => {
         const result = await executeTransaction('delete_address', [address_id, user_id]);
 
         if (!result.deleted) {
-            return res.status(404).json({ error: 'Address not found' });
+            return errorResponse(res, 'Address not found', 404);
         }
 
-        res.json({ message: 'Address deleted successfully' });
+        return successResponse(res, 'Address deleted successfully');
     } catch (error) {
         console.error('Delete address error:', error);
-        res.status(500).json({ error: 'Failed to delete address' });
+        return errorResponse(res, 'Failed to delete address', 500);
     }
 };
 

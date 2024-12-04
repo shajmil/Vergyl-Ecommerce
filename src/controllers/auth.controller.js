@@ -1,52 +1,43 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { successResponse, errorResponse } = require('../helpers/response.helper');
 
 const signup = async (req, res) => {
     try {
         const { name, email, phone, password } = req.body;
 
-        // Check if user already exists
+        // Check if user exists
         const existingUser = await getmultipleSP('check_existing_user', [email]);
         if (existingUser[0] && existingUser[0].length > 0) {
-            return res.status(400).json({ error: 'Email already registered' });
+            return errorResponse(res, 'Email already registered');
         }
 
-        // Hash password
+        // Hash password and create user
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create user using stored procedure with transaction
         const result = await executeTransaction('signup', [
-            name,
-            email,
-            phone,
-            hashedPassword,
-            'customer'
+            name, email, phone, hashedPassword, 'customer'
         ]);
 
-        const userId = result.user_id;
-
-        // Generate token
         const token = jwt.sign(
-            { user_id: userId, email: email, role: 'customer' },
+            { user_id: result.user_id, email, role: 'customer' },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        res.status(201).json({
-            message: 'User registered successfully',
+        return successResponse(res, 'User registered successfully', {
             token,
             user: {
-                user_id: userId,
+                user_id: result.user_id,
                 name,
                 email,
                 phone,
                 role: 'customer'
             }
-        });
+        }, 201);
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Failed to register user' });
+        return errorResponse(res, 'Failed to register user', 500);
     }
 };
 
@@ -54,29 +45,25 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Find user using stored procedure
         const users = await getmultipleSP('login', [email]);
         const user = users[0][0];
 
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return errorResponse(res, 'Invalid credentials', 401);
         }
 
-        // Verify password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return errorResponse(res, 'Invalid credentials', 401);
         }
 
-        // Generate token
         const token = jwt.sign(
             { user_id: user.user_id, email: user.email, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        res.json({
-            message: 'Login successful',
+        return successResponse(res, 'Login successful', {
             token,
             user: {
                 user_id: user.user_id,
@@ -88,7 +75,7 @@ const login = async (req, res) => {
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
+        return errorResponse(res, 'Login failed', 500);
     }
 };
 

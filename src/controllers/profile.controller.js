@@ -1,4 +1,5 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
+const { successResponse, errorResponse } = require('../helpers/response.helper');
 
 const get_profile = async (req, res) => {
     try {
@@ -6,13 +7,13 @@ const get_profile = async (req, res) => {
         const result = await getmultipleSP('get_profile', [user_id]);
         
         if (!result[0] || result[0].length === 0) {
-            return res.status(404).json({ error: 'Profile not found' });
+            return errorResponse(res, 'Profile not found', 404);
         }
 
-        res.json(result[0][0]);
+        return successResponse(res, 'Profile retrieved successfully', result[0][0]);
     } catch (error) {
         console.error('Get profile error:', error);
-        res.status(500).json({ error: 'Failed to fetch profile' });
+        return errorResponse(res, 'Failed to fetch profile', 500);
     }
 };
 
@@ -28,16 +29,13 @@ const update_profile = async (req, res) => {
         ]);
 
         if (!result.updated) {
-            throw new Error('Profile update failed');
+            return errorResponse(res, 'Profile update failed', 400);
         }
 
-        res.json({ 
-            message: 'Profile updated successfully',
-            user: result.user
-        });
+        return successResponse(res, 'Profile updated successfully', result.user);
     } catch (error) {
         console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Failed to update profile' });
+        return errorResponse(res, 'Failed to update profile', 500);
     }
 };
 
