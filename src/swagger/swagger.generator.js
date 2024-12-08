@@ -16,6 +16,11 @@ const doc = {
             description: 'Enter your bearer token in the format **Bearer <token>**'
         }
     },
+    security: [
+        {
+            bearerAuth: []
+        }
+    ],
     definitions: {
         LoginRequest: {
             email: 'user@example.com',
@@ -64,7 +69,7 @@ const doc = {
 
 const outputFile = './src/swagger/swagger-output.json';
 const routes = [
-    './src/app.js'  // Point to your main app.js file instead of individual routes
+    './src/app.js'  // Point to your main app.js file
 ];
 
 // Generate swagger.json

@@ -19,11 +19,6 @@
       "description": "Enter your bearer token in the format **Bearer <token>**"
     }
   },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
     "/": {
       "get": {
@@ -1107,5 +1102,10 @@
         }
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }
