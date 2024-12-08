@@ -15,21 +15,22 @@ const initiateLogin = async (req, res) => {
         // Check if user exists
         const users = await getmultipleSP('check_user_exists', [value, login_type]);
         let user = users[0][0];
-        console.log(user);
+        console.log('as',value);
         // If user doesn't exist, create new user
         if (!user) {
             const result = await executeTransaction('create_user', [
                 login_type === 'email' ? value : null, // email
                 login_type === 'phone' ? value : null, // phone
                 'customer',
-             
+                null // size_preferences initially null
             ]);
             console.log(result);
             user = {
                 user_id: result[0].user_id,
                 email: login_type === 'email' ? value : null,
                 phone: login_type === 'phone' ? value : null,
-                role: 'customer'
+                role: 'customer',
+                size_preferences: null
             };
         }
 
@@ -54,7 +55,8 @@ const initiateLogin = async (req, res) => {
         return successResponse(res, 'OTP sent successfully', {
             user_id: user.user_id,
             [login_type]: value,
-            otp: otp // Remove in production
+            otp: otp, // Remove in production
+            has_size_preferences: !!user.size_preferences
         });
 
     } catch (error) {
@@ -78,13 +80,14 @@ const socialLogin = async (req, res) => {
                 email,
                 name,
                 login_type,
-               
+                null // size_preferences initially null
             ]);
             user = {
                 user_id: result[0].user_id,
                 email: email,
                 name: name,
-                role: 'customer'
+                role: 'customer',
+                size_preferences: null
             };
         }
 
@@ -105,7 +108,9 @@ const socialLogin = async (req, res) => {
                 user_id: user.user_id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                has_size_preferences: !!user.size_preferences,
+                size_preferences: user.size_preferences
             }
         });
 
@@ -114,7 +119,16 @@ const socialLogin = async (req, res) => {
         return errorResponse(res, 'Failed to process social login', 500);
     }
 };
-
+const updateSizePreferences = async (req, res) => {
+    try {
+        const { user_id, size_preferences } = req.body;
+        await executeTransaction('update_user_size_preferences', [user_id, size_preferences]);
+        return successResponse(res, 'Size preferences updated successfully');
+    } catch (error) {
+        console.error('Size preferences update error:', error);
+        return errorResponse(res, 'Failed to update size preferences', 500);
+    }
+};
 const verifyOTP = async (req, res) => {
     try {
         const { user_id, otp } = req.body;
@@ -129,7 +143,7 @@ const verifyOTP = async (req, res) => {
         // Get user details
         const users = await getmultipleSP('get_user_by_id', [user_id]);
         const user = users[0][0];
-
+console.log('user',user);
         // Generate JWT token
         const token = jwt.sign(
             { 
@@ -148,7 +162,9 @@ const verifyOTP = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                role: user.role
+                role: user.role,
+                has_size_preferences: !!user.size_preferences,
+                size_preferences: user.size_preferences
             }
         });
 
@@ -161,5 +177,6 @@ const verifyOTP = async (req, res) => {
 module.exports = {
     initiateLogin,
     socialLogin,
-    verifyOTP
+    verifyOTP,
+    updateSizePreferences
 }; 
