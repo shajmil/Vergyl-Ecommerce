@@ -22,7 +22,8 @@ const initiateLogin = async (req, res) => {
                 login_type === 'email' ? value : null, // email
                 login_type === 'phone' ? value : null, // phone
                 'customer',
-                null // size_preferences initially null
+                null, // size_preferences initially null,
+                name
             ]);
             console.log(result);
             user = {
@@ -30,6 +31,7 @@ const initiateLogin = async (req, res) => {
                 email: login_type === 'email' ? value : null,
                 phone: login_type === 'phone' ? value : null,
                 role: 'customer',
+                name: name,
                 size_preferences: null
             };
         }
