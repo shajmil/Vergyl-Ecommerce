@@ -49,11 +49,8 @@ const update_address = async (req, res) => {
             country
         ]);
 
-        if (!result.updated) {
-            return errorResponse(res, 'Address not found', 404);
-        }
 
-        return successResponse(res, 'Address updated successfully', result.address);
+        return successResponse(res, 'Address updated successfully', result);
     } catch (error) {
         console.error('Update address error:', error);
         return errorResponse(res, 'Failed to update address', 500);
@@ -67,11 +64,8 @@ const delete_address = async (req, res) => {
 
         const result = await executeTransaction('delete_address', [address_id, user_id]);
 
-        if (!result.deleted) {
-            return errorResponse(res, 'Address not found', 404);
-        }
-
-        return successResponse(res, 'Address deleted successfully');
+      
+        return successResponse(res, 'Address deleted successfully', result);
     } catch (error) {
         console.error('Delete address error:', error);
         return errorResponse(res, 'Failed to delete address', 500);
