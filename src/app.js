@@ -8,7 +8,8 @@ const logger = require('morgan');
 const cors = require('cors');
 // Initialize express
 const app = express();
-
+const cron = require('node-cron');
+const axios = require('axios');
 
 // Middleware
 app.set('views', path.join(__dirname, 'views'));
@@ -50,6 +51,54 @@ app.use((err, req, res, next) => {
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
 });
+
+
+
+
+// Function to check API health
+async function checkApiHealth() {
+    const startTime = Date.now();
+    const timeout = 40000; // 40 seconds in milliseconds
+    let isHealthy = false;
+
+    try {
+        console.log(`[${new Date().toISOString()}] Starting API health check...`);
+
+        while (Date.now() - startTime < timeout) {
+            try {
+                const response = await axios.get('https://link-preview-api-t0b4.onrender.com/');
+                
+                if (response.status === 200) {
+                    console.log(`[${new Date().toISOString()}] API is responding successfully`);
+                    isHealthy = true;
+                    break;
+                }
+            } catch (error) {
+                console.log(`[${new Date().toISOString()}] API check attempt failed, retrying...`);
+                // Wait for 5 seconds before next attempt
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+        }
+
+        if (!isHealthy) {
+            console.error(`[${new Date().toISOString()}] API health check failed after 40 seconds`);
+            // Here you can add notification logic (email, SMS, etc.)
+        }
+
+    } catch (error) {
+        console.error(`[${new Date().toISOString()}] Error in health check:`, error.message);
+    }
+}
+
+// Schedule cron job to run every hour
+cron.schedule('0 * * * *', () => {
+    console.log(`[${new Date().toISOString()}] Running scheduled API health check`);
+    checkApiHealth();
+});
+
+// Initial check when the script starts
+checkApiHealth();
+
 
 // Start server
 const PORT = process.env.PORT || 3000;
