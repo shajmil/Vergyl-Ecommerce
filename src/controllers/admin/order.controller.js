@@ -90,10 +90,85 @@ const update_order_schedule = async (req, res) => {
         return errorResponse(res, 'Failed to update order schedule', 500);
     }
 };
+// src/controllers/admin/order.controller.js
+
+const manage_order_items = async (req, res) => {
+    try {
+        const order_id = req.params.id;
+        const admin_id = req.user.user_id;
+        const { 
+            is_custom_product, 
+            product_request_id, 
+            product_id, 
+            quantity, 
+            price 
+        } = req.body;
+
+        const result = await executeTransaction('manage_order_items', [
+            order_id,
+            admin_id,
+            is_custom_product,
+            product_request_id,
+            product_id,
+            quantity,
+            price
+        ]);
+
+        if (!result.updated) {
+            return errorResponse(res, 'Order not found or update failed', 404);
+        }
+
+        return successResponse(res, 'Order items updated successfully', result.order);
+    } catch (error) {
+        console.error('Manage order items error:', error);
+        return errorResponse(res, 'Failed to manage order items', 500);
+    }
+};
+
+const delete_order = async (req, res) => {
+    try {
+        const order_id = req.params.id;
+        const admin_id = req.user.user_id;
+
+        const result = await executeTransaction('delete_order', [
+            order_id,
+            admin_id
+        ]);
+
+        if (!result.deleted) {
+            return errorResponse(res, 'Order not found or delete failed', 404);
+        }
+
+        return successResponse(res, 'Order deleted successfully', null);
+    } catch (error) {
+        console.error('Delete order error:', error);
+        return errorResponse(res, 'Failed to delete order', 500);
+    }
+};
+
+const get_order_history = async (req, res) => {
+    try {
+        const order_id = req.params.id;
+        const result = await getmultipleSP('get_order_history', [order_id]);
+        
+        if (!result[0] || result[0].length === 0) {
+            return errorResponse(res, 'Order history not found', 404);
+        }
+
+        return successResponse(res, 'Order history retrieved successfully', result[0]);
+    } catch (error) {
+        console.error('Get admin order history error:', error);
+        return errorResponse(res, 'Failed to fetch order history', 500);
+    }
+};
 
 module.exports = {
     get_all_orders,
     get_admin_order_details,
     update_order_status,
-    update_order_schedule
-}; 
+    update_order_schedule,
+    manage_order_items,    // Add this
+    delete_order,          // Add this
+    get_order_history // Add this
+};
+

@@ -7,7 +7,10 @@ const {
     get_all_orders,
     get_admin_order_details,
     update_order_status,
-    update_order_schedule
+    update_order_schedule,
+    manage_order_items,
+    delete_order,
+    get_order_history
 } = require('../controllers/admin/order.controller');
 
 router.get('/orders', get_all_orders);
@@ -16,7 +19,7 @@ router.put('/orders/:id/status', update_order_status);
 router.put('/orders/:id/schedule', update_order_schedule);
 router.post('/orders/:id/items', manage_order_items);
 router.delete('/orders/:id', delete_order);
-router.get('/orders/:id/history', get_admin_order_history);
+router.get('/orders/:id/history', get_order_history);
 
 // Product management
 const {
