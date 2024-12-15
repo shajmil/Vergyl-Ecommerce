@@ -32,8 +32,8 @@ const get_order_details = async (req, res) => {
         const user_id = req.user.user_id;
         const order_id = req.params.id;
 
-        const result = await getmultipleSP('get_order_details', [order_id, user_id]);
-        
+        const result = await getmultipleSP('get_order_details', [order_id]);
+        console.log(result);
         if (!result[0] || result[0].length === 0) {
             return errorResponse(res, 'Order not found', 404);
         }
@@ -80,7 +80,7 @@ const get_order_history = async (req, res) => {
         const user_id = req.user.user_id;
         const order_id = req.params.id;
 
-        const result = await getmultipleSP('get_order_history', [order_id, user_id]);
+        const result = await getmultipleSP('get_order_history', [order_id]);
         
         if (!result[0] || result[0].length === 0) {
             return errorResponse(res, 'Order history not found', 404);
@@ -116,7 +116,7 @@ const create_order = async (req, res) => {
             JSON.stringify(order_items)
         ]);
 
-        return successResponse(res, 'Order created successfully', result.order, 201);
+        return successResponse(res, 'Order created successfully', result, 201);
     } catch (error) {
         console.error('Create order error:', error);
         return errorResponse(res, 'Failed to create order', 500);

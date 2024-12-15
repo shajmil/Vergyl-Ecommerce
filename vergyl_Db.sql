@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'e95f86d5-ba2e-11ef-8a66-0a8afaa5033b:1-152';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'e95f86d5-ba2e-11ef-8a66-0a8afaa5033b:1-329';
 
 --
 -- Table structure for table `addresses`
@@ -68,10 +68,11 @@ CREATE TABLE `order_history` (
   `order_id` int NOT NULL,
   `status` enum('Pending','Processed','Shipped','Delivered','Canceled') DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_By` int DEFAULT NULL,
   PRIMARY KEY (`history_id`),
   KEY `order_id` (`order_id`),
   CONSTRAINT `order_history_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -80,6 +81,7 @@ CREATE TABLE `order_history` (
 
 LOCK TABLES `order_history` WRITE;
 /*!40000 ALTER TABLE `order_history` DISABLE KEYS */;
+INSERT INTO `order_history` VALUES (1,5,'Pending','2024-12-15 09:19:21',NULL),(2,6,'Pending','2024-12-15 09:19:38',NULL),(3,7,'Pending','2024-12-15 09:21:05',NULL),(4,9,'Pending','2024-12-15 09:25:08',NULL),(5,1,'Shipped','2024-12-15 09:49:33',2),(6,1,'Shipped','2024-12-15 09:50:24',2),(7,1,'Shipped','2024-12-15 09:50:35',2);
 /*!40000 ALTER TABLE `order_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,14 +95,21 @@ DROP TABLE IF EXISTS `order_items`;
 CREATE TABLE `order_items` (
   `order_item_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
-  `product_id` int NOT NULL,
+  `is_custom_product` tinyint(1) DEFAULT '0',
+  `product_id` int DEFAULT NULL,
+  `product_request_id` int DEFAULT NULL,
   `quantity` int NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) GENERATED ALWAYS AS ((`quantity` * `price`)) STORED,
+  `delete_status` tinyint DEFAULT '0',
   PRIMARY KEY (`order_item_id`),
   KEY `order_id` (`order_id`),
-  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `product_id` (`product_id`),
+  KEY `product_request_id` (`product_request_id`),
+  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `order_items_ibfk_3` FOREIGN KEY (`product_request_id`) REFERENCES `product_requests` (`request_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,6 +118,7 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `is_custom_product`, `product_id`, `product_request_id`, `quantity`, `price`, `delete_status`) VALUES (1,5,1,NULL,6,2,50.00,0),(2,6,1,NULL,6,2,50.00,0),(3,7,1,NULL,6,2,50.00,0),(4,8,1,NULL,6,2,50.00,0),(5,9,1,NULL,6,2,50.00,0);
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -130,12 +140,14 @@ CREATE TABLE `orders` (
   `delivery_charge` decimal(10,2) DEFAULT '0.00',
   `total` decimal(10,2) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `delete_status` tinyint DEFAULT '0',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_id`),
   KEY `user_id` (`user_id`),
   KEY `address_id` (`address_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`address_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +156,46 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES (1,2,1,'Shipped',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:14:52',0,'2024-12-15 09:50:35'),(2,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:16:08',0,'2024-12-15 09:49:28'),(3,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:18:20',0,'2024-12-15 09:49:28'),(4,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:18:35',0,'2024-12-15 09:49:28'),(5,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:19:21',0,'2024-12-15 09:49:28'),(6,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:19:38',0,'2024-12-15 09:49:28'),(7,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:21:05',0,'2024-12-15 09:49:28'),(8,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:24:07',0,'2024-12-15 09:49:28'),(9,2,1,'Pending',NULL,100.00,10.00,5.00,115.00,'2024-12-15 09:25:08',0,'2024-12-15 09:49:28');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_requests`
+--
+
+DROP TABLE IF EXISTS `product_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_requests` (
+  `request_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `product_name` varchar(255) NOT NULL,
+  `description` text,
+  `requested_size` varchar(50) DEFAULT NULL,
+  `requested_color` varchar(50) DEFAULT NULL,
+  `status` enum('Pending','Approved','Rejected','Completed') DEFAULT 'Pending',
+  `admin_price` decimal(10,2) DEFAULT NULL,
+  `admin_size` varchar(50) DEFAULT NULL,
+  `admin_color` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `delete_status` tinyint DEFAULT '0',
+  `approved_by` int DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `product_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_requests`
+--
+
+LOCK TABLES `product_requests` WRITE;
+/*!40000 ALTER TABLE `product_requests` DISABLE KEYS */;
+INSERT INTO `product_requests` VALUES (1,3,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Pending',NULL,NULL,NULL,'2024-12-15 08:47:47','2024-12-15 08:47:47',0,NULL),(2,3,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Pending',NULL,NULL,NULL,'2024-12-15 08:48:00','2024-12-15 08:48:00',0,NULL),(3,3,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Pending',NULL,NULL,NULL,'2024-12-15 08:49:30','2024-12-15 08:49:30',0,NULL),(4,3,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Approved',19.99,'L','Red','2024-12-15 08:50:01','2024-12-15 09:01:50',0,2),(5,3,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Rejected',19.99,'L','Red','2024-12-15 08:50:56','2024-12-15 09:01:24',0,2),(6,2,'Custom T-Shirt','A custom T-shirt with specific design','M','Red','Completed',19.99,'L','Red','2024-12-15 09:03:59','2024-12-15 09:25:08',0,2);
+/*!40000 ALTER TABLE `product_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -162,6 +213,7 @@ CREATE TABLE `products` (
   `stock` int NOT NULL,
   `category` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `delete_status` tinyint DEFAULT '0',
   PRIMARY KEY (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -221,7 +273,7 @@ CREATE TABLE `user_otps` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_user_otp` (`user_id`),
   CONSTRAINT `user_otps_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -230,7 +282,7 @@ CREATE TABLE `user_otps` (
 
 LOCK TABLES `user_otps` WRITE;
 /*!40000 ALTER TABLE `user_otps` DISABLE KEYS */;
-INSERT INTO `user_otps` VALUES (1,1,'732341',0,'2024-12-14 16:01:09'),(3,2,'568886',1,'2024-12-14 16:04:51');
+INSERT INTO `user_otps` VALUES (1,1,'732341',0,'2024-12-14 16:01:09'),(3,2,'704677',1,'2024-12-15 08:54:28'),(7,5,'112700',0,'2024-12-15 05:18:48');
 /*!40000 ALTER TABLE `user_otps` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,7 +310,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `unique_social_user` (`social_id`,`social_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -267,7 +319,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,NULL,NULL,'v.jshejmil@gmail.com',NULL,NULL,'customer','2024-12-14 15:38:00',NULL,NULL,'2024-12-14 15:38:00',NULL,0),(2,'shajmil',NULL,NULL,'9645685457',NULL,'customer','2024-12-14 15:43:06',NULL,NULL,'2024-12-14 16:02:54','small',0),(3,'Testt','UFS','shajmil@gmail.com','9645685497',NULL,'customer','2024-12-14 15:55:02',NULL,NULL,'2024-12-14 18:41:59','M',0),(4,'Riyas Bava',NULL,'riyas@gmail.com',NULL,NULL,'customer','2024-12-14 15:56:15',NULL,NULL,'2024-12-14 15:56:15',NULL,0);
+INSERT INTO `users` VALUES (1,NULL,NULL,'v.jshejmil@gmail.com',NULL,NULL,'customer','2024-12-14 15:38:00',NULL,NULL,'2024-12-14 15:38:00',NULL,0),(2,'shajmil',NULL,NULL,'9645685457',NULL,'admin','2024-12-14 15:43:06',NULL,NULL,'2024-12-15 08:53:48','small',0),(3,'Testt','UFS','shajmil@gmail.com','9645685497',NULL,'customer','2024-12-14 15:55:02',NULL,NULL,'2024-12-14 18:41:59','M',0),(4,'Riyas Bava',NULL,'riyas@gmail.com',NULL,NULL,'customer','2024-12-14 15:56:15',NULL,NULL,'2024-12-14 15:56:15',NULL,0),(5,'',NULL,'sanufaris5@gmail.com',NULL,NULL,'customer','2024-12-15 04:16:33',NULL,NULL,'2024-12-15 04:16:33',NULL,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -281,4 +333,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-15  0:26:32
+-- Dump completed on 2024-12-15 15:22:34

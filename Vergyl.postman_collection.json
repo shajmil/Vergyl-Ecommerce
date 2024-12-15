@@ -8,6 +8,799 @@
 	},
 	"item": [
 		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get All Product Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/admin/product_requests?status=Approved",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"product_requests"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "Approved"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get All Product Requests",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/admin/product_requests",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"product_requests"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1897"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"769-AEPhOVMvTyh8Uv1bxHlcQR6z40M\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 08:55:46 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 1,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:17:47.000Z\",\n            \"updated_at\": \"2024-12-15T03:17:47.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 2,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:18:00.000Z\",\n            \"updated_at\": \"2024-12-15T03:18:00.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 3,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:19:30.000Z\",\n            \"updated_at\": \"2024-12-15T03:19:30.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 4,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:20:01.000Z\",\n            \"updated_at\": \"2024-12-15T03:20:01.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 5,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:20:56.000Z\",\n            \"updated_at\": \"2024-12-15T03:20:56.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "pending filter",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/admin/product_requests?status=Pending",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"product_requests"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Pending"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1169"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"491-syFmIscdI6dENeYDlUDO72YyBfg\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:10:29 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 1,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:17:47.000Z\",\n            \"updated_at\": \"2024-12-15T03:17:47.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 2,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:18:00.000Z\",\n            \"updated_at\": \"2024-12-15T03:18:00.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 3,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:19:30.000Z\",\n            \"updated_at\": \"2024-12-15T03:19:30.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "approved filter",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/admin/product_requests?status=Approved",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"product_requests"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Approved"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "800"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"320-ZqjN4xjOQ9p5ZvTelGgp4wieZuY\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:10:51 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 4,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:20:01.000Z\",\n            \"updated_at\": \"2024-12-15T03:31:50.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 6,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:33:59.000Z\",\n            \"updated_at\": \"2024-12-15T03:34:18.000Z\",\n            \"customer_name\": \"shajmil\",\n            \"customer_email\": null\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Handle Product Request",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"reject\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/admin/product_requests/{{id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"product_requests",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "approved",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"action\": \"approve\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/admin/product_requests/6",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"product_requests",
+										"6"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "111"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"6f-gbvN057UuzZRPCPOcWgenh2q3JQ\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:00:27 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product request approveed successfully\",\n    \"data\": [\n        {\n            \"request_id\": 5,\n            \"updated_count\": 1\n        }\n    ]\n}"
+						},
+						{
+							"name": "Rejected",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"action\": \"reject\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/admin/product_requests/{{id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"product_requests",
+										"{{id}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "110"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"6e-8G0hxd3Zh1Qw1TJDcYjuLkNk29Y\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:01:21 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product request rejected successfully\",\n    \"data\": [\n        {\n            \"request_id\": 5,\n            \"updated_count\": 1\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/admin/orders?status=Pending",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "Pending"
+								},
+								{
+									"key": "start_date",
+									"value": "2023-01-01",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2023-12-31",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get All Orders",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/admin/orders?status=Pending",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Pending"
+										},
+										{
+											"key": "start_date",
+											"value": "2023-01-01",
+											"disabled": true
+										},
+										{
+											"key": "end_date",
+											"value": "2023-12-31",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1986"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"7c2-sn2swlD5uVOPVHkMnvBFnEc9McI\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:43:52 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Orders retrieved successfully\",\n    \"data\": {\n        \"orders\": [\n            {\n                \"order_id\": 9,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:55:08.000Z\"\n            },\n            {\n                \"order_id\": 8,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:54:07.000Z\"\n            },\n            {\n                \"order_id\": 7,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:51:05.000Z\"\n            },\n            {\n                \"order_id\": 6,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:49:38.000Z\"\n            },\n            {\n                \"order_id\": 5,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:49:21.000Z\"\n            },\n            {\n                \"order_id\": 4,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:48:35.000Z\"\n            },\n            {\n                \"order_id\": 3,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:48:20.000Z\"\n            },\n            {\n                \"order_id\": 2,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:46:08.000Z\"\n            },\n            {\n                \"order_id\": 1,\n                \"user_id\": 2,\n                \"address_id\": 1,\n                \"subtotal\": \"100.00\",\n                \"service_charge\": \"10.00\",\n                \"delivery_charge\": \"5.00\",\n                \"total\": \"115.00\",\n                \"status\": \"Pending\",\n                \"scheduled_time\": null,\n                \"created_at\": \"2024-12-15T03:44:52.000Z\"\n            }\n        ],\n        \"total\": \"1035.00\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Admin Order Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders/{{id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Admin Order Details",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/orders/{{id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders",
+										"{{id}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "293"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"125-snLfmR9b7sSAJCnxAWZHXjYlmPw\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:44:56 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order details retrieved successfully\",\n    \"data\": {\n        \"order_id\": 1,\n        \"user_id\": 2,\n        \"address_id\": 1,\n        \"subtotal\": \"100.00\",\n        \"service_charge\": \"10.00\",\n        \"delivery_charge\": \"5.00\",\n        \"total\": \"115.00\",\n        \"status\": \"Pending\",\n        \"scheduled_time\": null,\n        \"created_at\": \"2024-12-15T03:44:52.000Z\",\n        \"items\": []\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Order Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"Shipped\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/admin/orders/{{id}}/status",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"admin",
+								"orders",
+								"{{id}}",
+								"status"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update Order Status",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"Shipped\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/admin/orders/{{id}}/status",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"admin",
+										"orders",
+										"{{id}}",
+										"status"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "105"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"69-+RI5M7EHaQ41sLF9B6Vs2CJDqLw\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:50:32 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order status updated successfully\",\n    \"data\": [\n        {\n            \"order_id\": 1,\n            \"status\": \"Shipped\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Manage Order Items",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"is_custom_product\": false,\n    \"product_request_id\": null,\n    \"product_id\": 1,\n    \"quantity\": 3,\n    \"price\": 25.00\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/admin/orders/{{id}}/items",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"{{id}}",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Order",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/admin/orders/{{id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"orders",
+								"{{id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Admin Order History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders/{{id}}/history",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{id}}",
+								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Login",
 			"item": [
 				{
@@ -566,7 +1359,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"568886\"\r\n}",
+							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"704677\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1308,7 +2101,7 @@
 				{
 					"name": "Delete adress",
 					"request": {
-						"method": "POST",
+						"method": "DELETE",
 						"header": [],
 						"body": {
 							"mode": "raw",
@@ -1320,13 +2113,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/address/",
+							"raw": "{{url}}/address/2",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"address",
-								""
+								"2"
 							]
 						}
 					},
@@ -1395,6 +2188,690 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Address deleted successfully\",\n    \"data\": [\n        {\n            \"deleted\": 1\n        }\n    ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Product request",
+			"item": [
+				{
+					"name": "Create Product Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_name\": \"Custom T-Shirt\",\n    \"description\": \"A custom T-shirt with specific design\",\n    \"requested_size\": \"M\",\n    \"requested_color\": \"Red\"\n}"
+						},
+						"url": {
+							"raw": "{{url}}/product_requests",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"product_requests"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create Product Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"product_name\": \"Custom T-Shirt\",\n    \"description\": \"A custom T-shirt with specific design\",\n    \"requested_size\": \"M\",\n    \"requested_color\": \"Red\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/product_requests",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"product_requests"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "91"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"5b-MLmMjKfqx5AJPEu0otCi4CNSQgA\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 08:50:52 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product request created successfully\",\n    \"data\": [\n        {\n            \"request_id\": 5\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Customer Product Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/product_requests?status=Approved",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"product_requests"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "Approved"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Customer Product Requests",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/product_requests",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"product_requests"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1592"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"638-71mjeLD2TbScNxjP6vJL/TcCNMk\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 08:51:07 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 1,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:17:47.000Z\",\n            \"updated_at\": \"2024-12-15T03:17:47.000Z\"\n        },\n        {\n            \"request_id\": 2,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:18:00.000Z\",\n            \"updated_at\": \"2024-12-15T03:18:00.000Z\"\n        },\n        {\n            \"request_id\": 3,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:19:30.000Z\",\n            \"updated_at\": \"2024-12-15T03:19:30.000Z\"\n        },\n        {\n            \"request_id\": 4,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:20:01.000Z\",\n            \"updated_at\": \"2024-12-15T03:20:01.000Z\"\n        },\n        {\n            \"request_id\": 5,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Pending\",\n            \"admin_price\": null,\n            \"admin_size\": null,\n            \"admin_color\": null,\n            \"created_at\": \"2024-12-15T03:20:56.000Z\",\n            \"updated_at\": \"2024-12-15T03:20:56.000Z\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "pending filter",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/product_requests?status=Pending",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"product_requests"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Pending"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "78"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"4e-Q37EZ9ZxjSmNEGVWVACLLTV2X90\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:11:47 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": []\n}"
+						},
+						{
+							"name": "approved filter",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/product_requests?status=Approved",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"product_requests"
+									],
+									"query": [
+										{
+											"key": "status",
+											"value": "Approved"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "384"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"180-tjnfFzb0/8iBUro3DIJRz5DyQYI\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:12:17 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 6,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:33:59.000Z\",\n            \"updated_at\": \"2024-12-15T03:34:18.000Z\"\n        }\n    ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 6,\n            \"product_id\": 0,\n            \"quantity\": 2,\n            \"price\": 50.00\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create Order Copy",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 6,\n            \"product_id\": 0,\n            \"quantity\": 2,\n            \"price\": 50.00\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{url}}/orders",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "79"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"4f-hy4WCrEIW9v9mDl9orHPfw3+60o\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:25:05 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order created successfully\",\n    \"data\": [\n        {\n            \"order_id\": 9\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Customer Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Customer Orders Copy",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/orders",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1516"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"5ec-NwpZkXN5Ew5zJ+XacB9GxeY/jrg\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:27:15 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Orders retrieved successfully\",\n    \"data\": [\n        {\n            \"order_id\": 1,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:44:52.000Z\"\n        },\n        {\n            \"order_id\": 2,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:46:08.000Z\"\n        },\n        {\n            \"order_id\": 3,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:48:20.000Z\"\n        },\n        {\n            \"order_id\": 4,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:48:35.000Z\"\n        },\n        {\n            \"order_id\": 5,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:49:21.000Z\"\n        },\n        {\n            \"order_id\": 6,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:49:38.000Z\"\n        },\n        {\n            \"order_id\": 7,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:51:05.000Z\"\n        },\n        {\n            \"order_id\": 8,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:54:07.000Z\"\n        },\n        {\n            \"order_id\": 9,\n            \"subtotal\": \"100.00\",\n            \"service_charge\": \"10.00\",\n            \"delivery_charge\": \"5.00\",\n            \"total\": \"115.00\",\n            \"status\": \"Pending\",\n            \"created_at\": \"2024-12-15T03:55:08.000Z\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Customer Order Details Copy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders/{{id}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Customer Order Details Copy",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/orders/{{id}}",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders",
+										"{{id}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "803"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"323-2gk+hhizDoQBwXW9nEAHFMMQ8IU\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:35:45 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order details retrieved successfully\",\n    \"data\": {\n        \"order_id\": 5,\n        \"user_id\": 2,\n        \"address_id\": 1,\n        \"subtotal\": \"100.00\",\n        \"service_charge\": \"10.00\",\n        \"delivery_charge\": \"5.00\",\n        \"total\": \"115.00\",\n        \"status\": \"Pending\",\n        \"scheduled_time\": null,\n        \"created_at\": \"2024-12-15T03:49:21.000Z\",\n        \"items\": [\n            {\n                \"order_item_id\": 1,\n                \"product_id\": null,\n                \"is_custom_product\": 1,\n                \"product_request_id\": 6,\n                \"quantity\": 2,\n                \"price\": \"50.00\",\n                \"item_subtotal\": \"100.00\",\n                \"product_details\": {\n                    \"status\": \"Completed\",\n                    \"user_id\": 2,\n                    \"admin_size\": \"L\",\n                    \"created_at\": \"2024-12-15 09:03:59.000000\",\n                    \"request_id\": 6,\n                    \"updated_at\": \"2024-12-15 09:25:08.000000\",\n                    \"admin_color\": \"Red\",\n                    \"admin_price\": 19.99,\n                    \"approved_by\": 2,\n                    \"description\": \"A custom T-shirt with specific design\",\n                    \"product_name\": \"Custom T-Shirt\",\n                    \"delete_status\": 0,\n                    \"requested_size\": \"M\",\n                    \"requested_color\": \"Red\"\n                }\n            }\n        ]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Customer Order History Copy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/orders/{{id}}/history",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"orders",
+								"{{id}}",
+								"history"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Customer Order History Copy",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/orders/{{id}}/history",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders",
+										"{{id}}",
+										"history"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "188"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"bc-dqBSb/bLmTbWwtkG3bRqDxUCnG0\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 15 Dec 2024 09:37:10 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order history retrieved successfully\",\n    \"data\": [\n        {\n            \"history_id\": 1,\n            \"status\": \"Pending\",\n            \"updated_at\": \"2024-12-15T03:49:21.000Z\",\n            \"user_id\": 2,\n            \"customer_name\": \"shajmil\"\n        }\n    ]\n}"
 						}
 					]
 				}
@@ -1525,7 +3002,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJlbWFpbCI6InNoZWptaWxAZ21haWwuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzM0MTkxNzAzLCJleHAiOjE3MzQyNzgxMDN9.HO2Yf-nRe4pvNq65_nYnI0FEUeMG9hNTdqEUDtvG57U",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0MjUyODc0LCJleHAiOjE3MzQzMzkyNzR9.Nta35jbVXIPRhVlcHKWZgcwo06_krksOUGBbgQ9I0bI",
 				"type": "string"
 			}
 		]

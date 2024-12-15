@@ -18,34 +18,6 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "add_product"(
-    IN p_name VARCHAR(255),
-    IN p_description TEXT,
-    IN p_price DECIMAL(10, 2),
-    IN p_stock INT,
-    IN p_category VARCHAR(100),
-    IN p_admin_id INT
-)
-BEGIN
-    -- Insert product
-    INSERT INTO products (
-        name, description, price, stock, category, 
-        created_at
-    )
-    VALUES (
-        p_name, p_description, p_price, p_stock, p_category,
-        NOW()
-    );
-    
-    -- Return created product
-    SELECT 
-        p.*
-    FROM products p
-    WHERE p.product_id = LAST_INSERT_ID();
-END$$
-DELIMITER ;
-
-DELIMITER $$
 CREATE DEFINER="avnadmin"@"%" PROCEDURE "check_social_user"(
     IN p_social_id VARCHAR(255),
     IN p_login_type VARCHAR(20)
@@ -81,68 +53,138 @@ DELIMITER $$
 CREATE DEFINER="avnadmin"@"%" PROCEDURE "create_order"(
     IN p_user_id INT,
     IN p_address_id INT,
-    IN p_items JSON,
-    IN p_delivery_time DATETIME
+    IN p_subtotal DECIMAL(10,2),
+    IN p_service_charge DECIMAL(10,2),
+    IN p_delivery_charge DECIMAL(10,2),
+    IN p_total DECIMAL(10,2),
+    IN p_order_items JSON -- Array of items (either custom or predefined products)
 )
 BEGIN
-    DECLARE v_order_id INT;
-    DECLARE v_total DECIMAL(10, 2);
+    -- Step 1: Insert Order
+    DECLARE order_id_ INT;
+  
     
-    START TRANSACTION;
+    -- Step 2: Insert Order Items from JSON
+    -- Iterate over the array of order items (either custom or predefined)
+    DECLARE item_count INT DEFAULT 0;
+    DECLARE item_json JSON;
+    DECLARE is_custom_product_ tinyINT;
+    DECLARE product_id INT;
+    DECLARE product_request_id INT;
+    DECLARE quantity INT;
+    DECLARE price DECIMAL(10,2);
+
+    SET item_count = JSON_LENGTH(p_order_items);
+	INSERT INTO orders (user_id, address_id, subtotal, service_charge, delivery_charge, total)
+    VALUES (p_user_id, p_address_id, p_subtotal, p_service_charge, p_delivery_charge, p_total);
     
-    -- Calculate total from items
-    SET v_total = (
-        SELECT SUM(JSON_EXTRACT(item, '$.price') * JSON_EXTRACT(item, '$.quantity'))
-        FROM JSON_TABLE(p_items, '$[*]' COLUMNS (
-            price DECIMAL(10, 2) PATH '$.price',
-            quantity INT PATH '$.quantity'
-        )) as items
-    );
+    -- Get the newly created order's ID
+    SET order_id_ = LAST_INSERT_ID();
+    WHILE item_count > 0 DO
+        SET item_json = JSON_EXTRACT(p_order_items, CONCAT('$[', item_count - 1, ']'));
+        
+        -- Extract item details from JSON
+        SET is_custom_product_ = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.is_custom_product'));
+        SET product_id = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.product_id'));
+        SET product_request_id = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.product_request_id'));
+        SET quantity = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.quantity'));
+        SET price = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.price'));
+        
+        -- Insert the order item based on whether it's a custom product or not
+        IF is_custom_product_ = 1 THEN
+            INSERT INTO order_items (order_id, is_custom_product, product_request_id, quantity, price)
+            VALUES (order_id_, TRUE, product_request_id, quantity, price);
+            UPDATE product_requests
+            SET status = 'Completed', updated_at = NOW()
+            WHERE request_id = product_request_id;
+        ELSE
+            INSERT INTO order_items (order_id, is_custom_product, product_id, quantity, price)
+            VALUES (order_id_, 0, product_id, quantity, price);
+        END IF;
+        
+        -- Decrease item_count
+        SET item_count = item_count - 1;
+    END WHILE;
     
-    -- Create order
-    INSERT INTO orders (user_id, address_id, status, scheduled_time, total, created_at)
-    VALUES (p_user_id, p_address_id, 'Pending', p_delivery_time, v_total, NOW());
+    INSERT INTO order_history (order_id, status, updated_at)
+    VALUES (order_id_, 'Pending', NOW());
+      SELECT order_id_ AS order_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "create_order_with_items"(
+    IN p_user_id INT,
+    IN p_address_id INT,
+    IN p_subtotal DECIMAL(10,2),
+    IN p_service_charge DECIMAL(10,2),
+    IN p_delivery_charge DECIMAL(10,2),
+    IN p_total DECIMAL(10,2),
+    IN p_order_items JSON -- Array of items (either custom or predefined products)
+)
+BEGIN
+    -- Step 1: Insert Order
+    DECLARE order_id_ INT;
+  
     
-    SET v_order_id = LAST_INSERT_ID();
+    -- Step 2: Insert Order Items from JSON
+    -- Iterate over the array of order items (either custom or predefined)
+    DECLARE item_count INT DEFAULT 0;
+    DECLARE item_json JSON;
+    DECLARE is_custom_product BOOLEAN;
+    DECLARE product_id INT;
+    DECLARE product_request_id INT;
+    DECLARE quantity INT;
+    DECLARE price DECIMAL(10,2);
+
+    SET item_count = JSON_LENGTH(p_order_items);
+	INSERT INTO orders (user_id, address_id, subtotal, service_charge, delivery_charge, total)
+    VALUES (p_user_id, p_address_id, p_subtotal, p_service_charge, p_delivery_charge, p_total);
     
-    -- Insert order items
-    INSERT INTO order_items (order_id, product_id, quantity, price, subtotal)
-    SELECT 
-        v_order_id,
-        JSON_EXTRACT(item, '$.product_id'),
-        JSON_EXTRACT(item, '$.quantity'),
-        JSON_EXTRACT(item, '$.price'),
-        JSON_EXTRACT(item, '$.price') * JSON_EXTRACT(item, '$.quantity')
-    FROM JSON_TABLE(p_items, '$[*]' COLUMNS (
-        item JSON PATH '$'
-    )) as items;
+    -- Get the newly created order's ID
+    SET order_id_ = LAST_INSERT_ID();
+    WHILE item_count > 0 DO
+        SET item_json = JSON_EXTRACT(p_order_items, CONCAT('$[', item_count - 1, ']'));
+        
+        -- Extract item details from JSON
+        SET is_custom_product = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.is_custom_product'));
+        SET product_id = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.product_id'));
+        SET product_request_id = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.product_request_id'));
+        SET quantity = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.quantity'));
+        SET price = JSON_UNQUOTE(JSON_EXTRACT(item_json, '$.price'));
+        
+        -- Insert the order item based on whether it's a custom product or not
+        IF is_custom_product THEN
+            INSERT INTO order_items (order_id, is_custom_product, product_request_id, quantity, price)
+            VALUES (order_id_, TRUE, product_request_id, quantity, price);
+        ELSE
+            INSERT INTO order_items (order_id, is_custom_product, product_id, quantity, price)
+            VALUES (order_id_, FALSE, product_id, quantity, price);
+        END IF;
+        
+        -- Decrease item_count
+        SET item_count = item_count - 1;
+    END WHILE;
     
-    -- Update product stock
-    UPDATE products p
-    JOIN JSON_TABLE(p_items, '$[*]' COLUMNS (
-        product_id INT PATH '$.product_id',
-        quantity INT PATH '$.quantity'
-    )) as items
-    SET p.stock = p.stock - items.quantity
-    WHERE p.product_id = items.product_id;
+    INSERT INTO order_history (order_id, status, updated_at)
+    VALUES (order_id_, 'Pending', NOW());
     
-    COMMIT;
-    
-    -- Return order details
-    SELECT o.*, 
-           JSON_ARRAYAGG(
-               JSON_OBJECT(
-                   'product_id', oi.product_id,
-                   'quantity', oi.quantity,
-                   'price', oi.price,
-                   'subtotal', oi.subtotal
-               )
-           ) as items
-    FROM orders o
-    JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE o.order_id = v_order_id
-    GROUP BY o.order_id;
-    
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "create_product_request"(
+    IN p_user_id INT,
+    IN p_product_name VARCHAR(255),
+    IN p_description TEXT,
+    IN p_requested_size VARCHAR(50),
+    IN p_requested_color VARCHAR(50)
+)
+BEGIN
+    INSERT INTO product_requests (user_id, product_name, description, requested_size, requested_color)
+    VALUES (p_user_id, p_product_name, p_description, p_requested_size, p_requested_color);
+        SELECT LAST_INSERT_ID() as request_id;
+
 END$$
 DELIMITER ;
 
@@ -267,15 +309,17 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "delete_product"(
-    IN p_product_id INT,
-    IN p_admin_id INT
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "delete_order"(
+    IN p_order_id INT
 )
 BEGIN
-    DELETE FROM products
-    WHERE product_id = p_product_id;
+    UPDATE orders
+    SET delete_status = 1
+    WHERE order_id = p_order_id;
     
-    SELECT ROW_COUNT() as deleted;
+    UPDATE order_items
+    SET delete_status = 1
+    WHERE order_id = p_order_id;
 END$$
 DELIMITER ;
 
@@ -285,6 +329,106 @@ CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_addresses"(
 )
 BEGIN
     SELECT * FROM addresses WHERE user_id = p_user_id and Delete_Status=0;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_all_orders"(
+    IN p_status ENUM('Pending', 'Processed', 'Shipped', 'Delivered', 'Canceled'),
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_limit INT,
+    IN p_offset INT
+)
+BEGIN
+    -- Your procedure logic goes here
+    SELECT 
+        o.order_id,
+        o.user_id,
+        o.address_id,
+        o.subtotal,
+        o.service_charge,
+        o.delivery_charge,
+        o.total,
+        o.status,
+        o.scheduled_time,
+        o.created_at
+    FROM orders o
+    WHERE 
+        (p_status IS NULL OR o.status = p_status)  -- Filter by status if provided
+        AND (p_start_date IS NULL OR o.created_at >= p_start_date)  -- Filter by start date if provided
+        AND (p_end_date IS NULL OR o.created_at <= p_end_date)  -- Filter by end date if provided
+        AND o.delete_status = 0  -- Exclude deleted orders
+    ORDER BY o.created_at DESC
+    LIMIT p_limit OFFSET p_offset;
+
+    -- Query to get the total sum of all orders' total
+    SELECT SUM(o.total) AS total_amount
+    FROM orders o
+    WHERE 
+        (p_status IS NULL OR o.status = p_status)  -- Filter by status if provided
+        AND (p_start_date IS NULL OR o.created_at >= p_start_date)  -- Filter by start date if provided
+        AND (p_end_date IS NULL OR o.created_at <= p_end_date)  -- Filter by end date if provided
+        AND o.delete_status = 0;  -- Exclude deleted orders
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_all_product_requests"(
+    IN p_status varchar(50) -- Add status as a filter parameter
+)
+BEGIN
+    SELECT pr.request_id, 
+           pr.product_name, 
+           pr.description, 
+           pr.requested_size, 
+           pr.requested_color, 
+           pr.status, 
+           pr.admin_price, 
+           pr.admin_size, 
+           pr.admin_color, 
+           pr.created_at, 
+           pr.updated_at, 
+           u.name AS customer_name, 
+           u.email AS customer_email
+    FROM product_requests pr
+    LEFT JOIN users u ON pr.user_id = u.user_id
+    WHERE pr.delete_status = 0
+    AND (pr.status = p_status OR p_status IS NULL);  -- Filter by status if provided, else fetch all
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customers"(
+    IN p_search VARCHAR(255),
+    IN p_limit INT,
+    IN p_offset INT
+)
+BEGIN
+    -- Get total count first
+    SELECT COUNT(DISTINCT u.user_id) as total
+    FROM users u
+    WHERE u.role = 'customer'
+    AND (p_search IS NULL 
+         OR u.name LIKE CONCAT('%', p_search, '%')
+         OR u.email LIKE CONCAT('%', p_search, '%')
+         OR u.phone LIKE CONCAT('%', p_search, '%'));
+
+    -- Get paginated results with aggregates
+    SELECT 
+        u.*,
+        COUNT(DISTINCT o.order_id) as total_orders,
+        COALESCE(SUM(o.total), 0) as total_spent
+    FROM users u
+    LEFT JOIN orders o ON u.user_id = o.user_id
+    WHERE u.role = 'customer'
+    AND (p_search IS NULL 
+         OR u.name LIKE CONCAT('%', p_search, '%')
+         OR u.email LIKE CONCAT('%', p_search, '%')
+         OR u.phone LIKE CONCAT('%', p_search, '%'))
+    GROUP BY u.user_id
+    ORDER BY total_spent DESC
+    LIMIT p_limit OFFSET p_offset;
 END$$
 DELIMITER ;
 
@@ -317,6 +461,30 @@ BEGIN
     -- Addresses
     SELECT * FROM addresses 
     WHERE user_id = p_customer_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customer_product_requests"(
+    IN p_user_id INT,
+    IN p_status varchar(50) -- Add status as a filter parameter
+)
+BEGIN
+    SELECT pr.request_id, 
+           pr.product_name, 
+           pr.description, 
+           pr.requested_size, 
+           pr.requested_color, 
+           pr.status, 
+           pr.admin_price, 
+           pr.admin_size, 
+           pr.admin_color, 
+           pr.created_at, 
+           pr.updated_at
+    FROM product_requests pr
+    WHERE pr.user_id = p_user_id
+      AND pr.delete_status = 0
+      AND (pr.status = p_status OR p_status IS NULL);  -- Filter by status if provided, else fetch all
 END$$
 DELIMITER ;
 
@@ -366,63 +534,105 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customers"(
-    IN p_search VARCHAR(255),
-    IN p_limit INT,
-    IN p_offset INT
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_orders"(
+    IN p_user_id INT
 )
 BEGIN
-    -- Get total count first
-    SELECT COUNT(DISTINCT u.user_id) as total
-    FROM users u
-    WHERE u.role = 'customer'
-    AND (p_search IS NULL 
-         OR u.name LIKE CONCAT('%', p_search, '%')
-         OR u.email LIKE CONCAT('%', p_search, '%')
-         OR u.phone LIKE CONCAT('%', p_search, '%'));
-
-    -- Get paginated results with aggregates
-    SELECT 
-        u.*,
-        COUNT(DISTINCT o.order_id) as total_orders,
-        COALESCE(SUM(o.total), 0) as total_spent
-    FROM users u
-    LEFT JOIN orders o ON u.user_id = o.user_id
-    WHERE u.role = 'customer'
-    AND (p_search IS NULL 
-         OR u.name LIKE CONCAT('%', p_search, '%')
-         OR u.email LIKE CONCAT('%', p_search, '%')
-         OR u.phone LIKE CONCAT('%', p_search, '%'))
-    GROUP BY u.user_id
-    ORDER BY total_spent DESC
-    LIMIT p_limit OFFSET p_offset;
+    -- Fetch orders for a specific user
+    SELECT o.order_id, o.subtotal, o.service_charge, o.delivery_charge, o.total, o.status, o.created_at
+    FROM orders o
+    WHERE o.user_id = p_user_id
+      AND o.delete_status = 0;  -- Filter out deleted orders
 END$$
 DELIMITER ;
 
 DELIMITER $$
 CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_order_details"(
-    IN p_order_id INT,
-    IN p_user_id INT
+    IN p_order_id INT
 )
 BEGIN
-    -- Order details
+    -- Fetch main order details
     SELECT 
-        o.*,
-        a.address_line,
-        a.city,
-        a.state
+        o.order_id,
+        o.user_id,
+        o.address_id,
+        o.subtotal,
+        o.service_charge,
+        o.delivery_charge,
+        o.total,
+        o.status,
+        o.scheduled_time,
+        o.created_at
     FROM orders o
-    JOIN addresses a ON o.address_id = a.address_id
-    WHERE o.order_id = p_order_id AND o.user_id = p_user_id;
-    
-    -- Order items
+    WHERE o.order_id = p_order_id
+      AND o.delete_status = 0;  -- Filter out deleted orders
+
+    -- Fetch associated order items
     SELECT 
-        oi.*,
-        p.name as product_name,
-        p.description as product_description
+        oi.order_item_id,
+        oi.product_id,
+        oi.is_custom_product,
+        oi.product_request_id,
+        oi.quantity,
+        oi.price,
+        oi.subtotal AS item_subtotal,
+        -- Conditional query for custom or predefined products
+        CASE 
+            WHEN oi.is_custom_product = 1 THEN (
+                SELECT JSON_OBJECT(
+                    'request_id', pr.request_id,
+                    'user_id', pr.user_id,
+                    'product_name', pr.product_name,
+                    'description', pr.description,
+                    'requested_size', pr.requested_size,
+                    'requested_color', pr.requested_color,
+                    'status', pr.status,
+                    'admin_price', pr.admin_price,
+                    'admin_size', pr.admin_size,
+                    'admin_color', pr.admin_color,
+                    'created_at', pr.created_at,
+                    'updated_at', pr.updated_at,
+                    'delete_status', pr.delete_status,
+                    'approved_by', pr.approved_by
+                )
+                FROM product_requests pr
+                WHERE pr.request_id = oi.product_request_id
+                  AND pr.delete_status = 0
+            )
+            ELSE (
+                SELECT JSON_OBJECT(
+                    'product_id', p.product_id,
+                    'name', p.name,
+                    'category', p.category,
+                    'price', p.price
+                )
+                FROM products p
+                WHERE p.product_id = oi.product_id
+                  AND p.delete_status = 0
+            )
+        END AS product_details
     FROM order_items oi
-    JOIN products p ON oi.product_id = p.product_id
-    WHERE oi.order_id = p_order_id;
+    WHERE oi.order_id = p_order_id
+      AND oi.delete_status = 0;  -- Filter out deleted items
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_order_history"(
+    IN p_order_id INT
+)
+BEGIN
+    -- Retrieve the order history based on order_id
+    SELECT oh.history_id, 
+           oh.status, 
+           oh.updated_at, 
+           o.user_id,
+           u.name AS customer_name
+    FROM order_history oh
+    JOIN orders o ON oh.order_id = o.order_id
+    LEFT JOIN users u ON o.user_id = u.user_id
+    WHERE oh.order_id = p_order_id 
+    ORDER BY oh.updated_at ASC; -- Sort by updated_at to get the chronological order of status changes
 END$$
 DELIMITER ;
 
@@ -454,27 +664,6 @@ BEGIN
     AND (p_status IS NULL OR status = p_status)
     GROUP BY DATE(created_at), status
     ORDER BY date DESC;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_orders"(
-    IN p_user_id INT
-)
-BEGIN
-    SELECT 
-        o.*,
-        a.address_line,
-        a.city,
-        a.state,
-        COUNT(oi.order_item_id) as item_count,
-        SUM(oi.quantity) as total_items
-    FROM orders o
-    JOIN addresses a ON o.address_id = a.address_id
-    JOIN order_items oi ON o.order_id = oi.order_id
-    WHERE o.user_id = p_user_id
-    GROUP BY o.order_id
-    ORDER BY o.created_at DESC;
 END$$
 DELIMITER ;
 
@@ -517,36 +706,6 @@ BEGIN
     WHERE o.created_at BETWEEN p_start_date AND p_end_date
     GROUP BY p.category
     ORDER BY total_revenue DESC;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_products"(
-    IN p_category VARCHAR(100),
-    IN p_search VARCHAR(255),
-    IN p_limit INT,
-    IN p_offset INT
-)
-BEGIN
-    -- Get total count first
-    SELECT COUNT(*) as total
-    FROM products p
-    WHERE (p_category IS NULL OR p.category = p_category)
-    AND (p_search IS NULL 
-         OR p.name LIKE CONCAT('%', p_search, '%')
-         OR p.description LIKE CONCAT('%', p_search, '%'));
-
-    -- Get paginated results
-    SELECT 
-        p.*,
-        p.category as category_name
-    FROM products p
-    WHERE (p_category IS NULL OR p.category = p_category)
-    AND (p_search IS NULL 
-         OR p.name LIKE CONCAT('%', p_search, '%')
-         OR p.description LIKE CONCAT('%', p_search, '%'))
-    ORDER BY p.created_at DESC
-    LIMIT p_limit OFFSET p_offset;
 END$$
 DELIMITER ;
 
@@ -617,6 +776,63 @@ BEGIN
     SELECT user_id, name, email, phone, role,size_preferences
     FROM users
     WHERE user_id = p_user_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "handle_product_request"(
+    IN p_request_id INT,
+    IN p_admin_id INT,
+    IN p_action VARCHAR(10),          -- 'approve' or 'reject'
+    IN p_admin_price DECIMAL(10,2),   -- Price when approving
+    IN p_admin_size VARCHAR(50),      -- Size when approving
+    IN p_admin_color VARCHAR(50)      -- Color when approving
+)
+BEGIN
+    DECLARE affected_rows INT;
+
+    -- Check if action is approve
+    IF p_action = 'approve' THEN
+        UPDATE product_requests
+        SET status = 'Approved', 
+            admin_price = p_admin_price, 
+            admin_size = p_admin_size,
+            admin_color = p_admin_color,
+            approved_by = p_admin_id,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE request_id = p_request_id;
+        
+        -- Get the number of affected rows
+        SET affected_rows = ROW_COUNT();
+        
+        -- If no rows were affected, signal an error
+        IF affected_rows = 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Request ID not found or no changes made.';
+        END IF;
+
+    -- If action is reject
+    ELSEIF p_action = 'reject' THEN
+        UPDATE product_requests
+        SET status = 'Rejected', 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE request_id = p_request_id;
+        
+        -- Get the number of affected rows
+        SET affected_rows = ROW_COUNT();
+        
+        -- If no rows were affected, signal an error
+        IF affected_rows = 0 THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Request ID not found or no changes made.';
+        END IF;
+
+    -- Invalid action handling
+    ELSE
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid action. Please specify "approve" or "reject"';
+    END IF;
+
+    -- Return the request_id or affected rows count
+    SELECT p_request_id AS request_id, affected_rows AS updated_count;
+    
 END$$
 DELIMITER ;
 
@@ -725,34 +941,22 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "update_product"(
-    IN p_product_id INT,
-    IN p_name VARCHAR(255),
-    IN p_description TEXT,
-    IN p_price DECIMAL(10, 2),
-    IN p_stock INT,
-    IN p_category VARCHAR(100),
-    IN p_admin_id INT
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "update_order_status"(
+    IN p_order_id INT,
+    IN p_new_status ENUM('Pending', 'Processed', 'Shipped', 'Delivered', 'Canceled'),
+    IN updated_By_ INT
 )
 BEGIN
-    -- Update product
-    UPDATE products
-    SET name = p_name,
-        description = p_description,
-        price = p_price,
-        stock = p_stock,
-        category = p_category,
+    -- Update the order status in the orders table
+    UPDATE orders
+    SET status = p_new_status, 
         updated_at = NOW()
-    WHERE product_id = p_product_id;
-    
-    SELECT ROW_COUNT() as updated;
-    
-    IF ROW_COUNT() > 0 THEN
-        SELECT 
-            p.*
-        FROM products p
-        WHERE p.product_id = p_product_id;
-    END IF;
+    WHERE order_id = p_order_id AND delete_status = 0;
+
+    -- Insert a new record in the order_history table to track the status change
+    INSERT INTO order_history (order_id, status,updated_By)
+    VALUES (p_order_id, p_new_status,updated_By_);
+    select p_order_id as order_id,p_new_status as status;
 END$$
 DELIMITER ;
 

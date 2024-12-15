@@ -13,8 +13,8 @@ const create_product_request = async (req, res) => {
             requested_size,
             requested_color
         ]);
-
-        return successResponse(res, 'Product request created successfully', result.request, 201);
+        console.log(result);
+        return successResponse(res, 'Product request created successfully', result, 201);
     } catch (error) {
         console.error('Create product request error:', error);
         return errorResponse(res, 'Failed to create product request', 500);
@@ -24,7 +24,8 @@ const create_product_request = async (req, res) => {
 const get_customer_product_requests = async (req, res) => {
     try {
         const user_id = req.user.user_id;
-        const result = await getmultipleSP('get_customer_product_requests', [user_id]);
+        const { status } = req.query; // Get status from query params
+        const result = await getmultipleSP('get_customer_product_requests', [user_id, status || null]);
         return successResponse(res, 'Product requests retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get product requests error:', error);

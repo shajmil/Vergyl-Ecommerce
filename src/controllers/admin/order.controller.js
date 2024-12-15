@@ -11,10 +11,15 @@ const get_all_orders = async (req, res) => {
             limit || 10,
             offset || 0
         ]);
+        const orderDetails = result[0];
 
+        // The result[1] will contain the total amount
+        const totalAmount = result[1][0] ? result[1][0].total_amount : 0;
+
+     
         return successResponse(res, 'Orders retrieved successfully', {
-            orders: result[0],
-            total: result[1][0].total
+            orders: orderDetails,
+            total: totalAmount
         });
     } catch (error) {
         console.error('Get all orders error:', error);
@@ -57,11 +62,7 @@ const update_order_status = async (req, res) => {
             admin_id
         ]);
 
-        if (!result.updated) {
-            return errorResponse(res, 'Order not found', 404);
-        }
-
-        return successResponse(res, 'Order status updated successfully', result.order);
+        return successResponse(res, 'Order status updated successfully', result);
     } catch (error) {
         console.error('Update order status error:', error);
         return errorResponse(res, 'Failed to update order status', 500);
