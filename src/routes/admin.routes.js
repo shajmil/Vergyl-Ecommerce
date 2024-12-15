@@ -14,6 +14,9 @@ router.get('/orders', get_all_orders);
 router.get('/orders/:id', get_admin_order_details);
 router.put('/orders/:id/status', update_order_status);
 router.put('/orders/:id/schedule', update_order_schedule);
+router.post('/orders/:id/items', manage_order_items);
+router.delete('/orders/:id', delete_order);
+router.get('/orders/:id/history', get_admin_order_history);
 
 // Product management
 const {
@@ -49,5 +52,14 @@ router.get('/reports/orders', get_order_reports);
 router.get('/reports/revenue', get_revenue_reports);
 router.get('/reports/products', get_product_reports);
 router.get('/reports/customers', get_customer_reports);
+
+// Product Requests
+const {
+    get_all_product_requests,
+    handle_product_request
+} = require('../controllers/admin/product_request.controller');
+
+router.get('/product_requests', get_all_product_requests);
+router.put('/product_requests/:id', handle_product_request);
 
 module.exports = router; 

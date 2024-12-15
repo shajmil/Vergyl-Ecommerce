@@ -1,0 +1,1562 @@
+{
+	"info": {
+		"_postman_id": "9126569e-68eb-4470-b150-3e99f0d04242",
+		"name": "Vergyl",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19991555",
+		"_collection_link": "https://vergyl.postman.co/workspace/Vergyl-Workspace~63b91a32-4e77-4136-b181-a20cf5915596/collection/19991555-9126569e-68eb-4470-b150-3e99f0d04242?action=share&source=collection_link&creator=19991555"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "Normal Email ,Phone Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"v.jshejmil@gmail.com\",\r\n  \"login_type\": \"email\",\r\n  \"name\": \"shajmil\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "By email",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"email\": \"v.jshejmil@gmail.com\",\r\n  \"login_type\": \"email\",\r\n  \"name\": \"shajmil\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/login",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 15:40:26 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "117"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f4ad11c0aeba2-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"92-wuU0wFUrxRYFYROPoH9GV2ejTVw\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "023ad696-1054-493a"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"OTP sent successfully\",\n    \"data\": {\n        \"user_id\": 1,\n        \"email\": \"v.jshejmil@gmail.com\",\n        \"otp\": \"252961\",\n        \"has_size_preferences\": false\n    }\n}"
+						},
+						{
+							"name": "by phone",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"phone\": \"9645685457\",\r\n  \"login_type\": \"phone\",\r\n  \"name\": \"shajmil\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/login",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 15:43:07 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "110"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f4eb02b72f934-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"88-e4gmbGSO0s/h4crJmcTKGQWmq64\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "2b247875-3ddb-4759"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"OTP sent successfully\",\n    \"data\": {\n        \"user_id\": 2,\n        \"phone\": \"9645685457\",\n        \"otp\": \"138082\",\n        \"has_size_preferences\": false\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Social Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"social_id\": \"ELogi43nGle2432444ae\",\r\n  \"email\": \"shejmil@gmail.com\",\r\n  \"name\": \"shajmil Dh\",\r\n  \"login_type\": \"google\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/social-login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"social-login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Google",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"social_id\": \"ELogi43nGle2432444ae\",\r\n  \"email\": \"shejmil@gmail.com\",\r\n  \"name\": \"shajmil Dh\",\r\n  \"login_type\": \"google\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/social-login",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"social-login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 15:55:03 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "316"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f603a9a83fdc1-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"19a-s5I7OVOPDVx3+o7yw2n7/Wmdx1Q\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "34b13189-8b11-439d"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJlbWFpbCI6InNoZWptaWxAZ21haWwuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzM0MTkxNzAzLCJleHAiOjE3MzQyNzgxMDN9.HO2Yf-nRe4pvNq65_nYnI0FEUeMG9hNTdqEUDtvG57U\",\n        \"user\": {\n            \"user_id\": 3,\n            \"name\": \"shajmil Dh\",\n            \"email\": \"shejmil@gmail.com\",\n            \"role\": \"customer\",\n            \"has_size_preferences\": false,\n            \"size_preferences\": null\n        }\n    }\n}"
+						},
+						{
+							"name": "apple",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"social_id\": \"Mac2432\",\r\n  \"email\": \"riyas@gmail.com\",\r\n  \"name\": \"Riyas Bava\",\r\n  \"login_type\": \"apple\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/social-login",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"social-login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 15:56:16 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "317"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f6201fc674d81-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"196-JtPOrGEdSeTagIDGZfe8Ym36mjw\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "15aee650-621f-4d69"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJlbWFpbCI6InJpeWFzQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTczNDE5MTc3NiwiZXhwIjoxNzM0Mjc4MTc2fQ.NdKfZlv8nssnPG1qdoUNqRoaKogXtsdeWh60v1PmH0I\",\n        \"user\": {\n            \"user_id\": 4,\n            \"name\": \"Riyas Bava\",\n            \"email\": \"riyas@gmail.com\",\n            \"role\": \"customer\",\n            \"has_size_preferences\": false,\n            \"size_preferences\": null\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update size Preference",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"size_preferences\": \"small\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/update-size-preferences",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"update-size-preferences"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "size",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"size_preferences\": \"small\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/update-size-preferences",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"update-size-preferences"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 16:02:54 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "58"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f6bbdc8719c65-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"42-RmJeGKlQ6Lz0fFQgHAJm3TClm5w\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "e8cbe9fb-bb02-409b"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Size preferences updated successfully\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"568886\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/auth/verify-otp",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"verify-otp"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "otp verify invalid",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"user_id\": \"1\",\r\n  \"otp\": \"876646\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/verify-otp",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"verify-otp"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 16:04:04 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "45"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f6d6f3f464017-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"29-gdkxLRfvI/su9F/xacPyEMCXwH4\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "7d405430-4d86-48ac"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Invalid OTP\"\n}"
+						},
+						{
+							"name": "success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"568886\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/auth/verify-otp",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"auth",
+										"verify-otp"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 16:05:00 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "307"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f1f6ecd59314017-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"18b-wlcIe46J4nhO3M/KfPgMpmXs/nE\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "b33ae3d5-237a-4679"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzM0MTkyMzAwLCJleHAiOjE3MzQyNzg3MDB9.vhEuCHzGKzYwzAjgIcHYpNn17gPVv5O6xmPxeiWh4Og\",\n        \"user\": {\n            \"user_id\": 2,\n            \"name\": \"shajmil\",\n            \"email\": null,\n            \"phone\": \"9645685457\",\n            \"role\": \"customer\",\n            \"has_size_preferences\": true,\n            \"size_preferences\": \"small\"\n        }\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/profile/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"profile",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "get profile from token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/profile/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"profile",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:25:59 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "157"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "CF-Ray",
+									"value": "8f203c8e8b2ffd9c-SIN"
+								},
+								{
+									"key": "CF-Cache-Status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"c7-jOAxBTjWXYn6qSmKl5nP0i6GA3g\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "rndr-id",
+									"value": "c1d18797-125e-40c1"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Profile retrieved successfully\",\n    \"data\": {\n        \"user_id\": 3,\n        \"name\": \"shajmil Dh\",\n        \"email\": \"shejmil@gmail.com\",\n        \"phone\": null,\n        \"role\": \"customer\",\n        \"created_at\": \"2024-12-14T15:55:02.000Z\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Testt\",\r\n    \"last_name\": \"UFS\",\r\n    \"email\": \"shajmil@gmail.com\",\r\n    \"phone\": \"9645685497\",\r\n    \"size_preferences\": \"M\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/profile/update",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"profile",
+								"update"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "success",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Testt\",\r\n    \"last_name\": \"UFS\",\r\n    \"email\": \"shajmil@gmail.com\",\r\n    \"phone\": \"9645685497\",\r\n    \"size_preferences\": \"M\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/profile/update",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"profile",
+										"update"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "57"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"39-HkUnMlcrNkT9PDgIY1hd762kDBs\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:41:56 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Profile updated successfully\"\n}"
+						},
+						{
+							"name": "error when already exist",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Testt\",\r\n    \"last_name\": \"UFS\",\r\n    \"email\": \"shajmil@gmail.com\",\r\n    \"phone\": \"9645685497\",\r\n    \"size_preferences\": \"M\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/profile/update",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"profile",
+										"update"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "57"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"39-JpftwQ62TnQtmVgyiyWyHEKKuJc\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:41:32 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Phone number already exists\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "address",
+			"item": [
+				{
+					"name": "Get address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/address/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"address",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "get all adresses",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/address/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"address",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "71"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"47-UNSsH2a5eTx5oda7SpIZbytzO2E\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:44:04 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Addresses retrieved successfully\",\n    \"data\": []\n}"
+						}
+					]
+				},
+				{
+					"name": "Add Adress",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_line\": \"45/B, MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/address/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"address",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "added",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"address_line\": \"45/B, MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/address/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"address",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "81"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"51-8Y4rzNqb33Us+Jsetoyz+RsYL+4\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:47:39 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Address added successfully\",\n    \"data\": [\n        {\n            \"address_id\": 1\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Adress",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_line\": \" MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/address/4",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"address",
+								"4"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "updated",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"address_line\": \" MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/address/4",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"address",
+										"4"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "80"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"50-6hRXDmcMkAz7DAiRIZZIAH+oXu4\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:54:27 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Address updated successfully\",\n    \"data\": [\n        {\n            \"updated\": 1\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete adress",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_line\": \"45/B, MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/address/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"address",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "delete adress",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"address_line\": \"45/B, MG Road, Panampilly Nagar\",\r\n    \"city\": \"Ernakulam\",\r\n    \"state\": \"Kerala\",\r\n    \"zip_code\": \"682036\",\r\n    \"country\": \"India\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/address/2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"address",
+										"2"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "80"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"50-y3otz9IZDvMvQ3lumeGfbSebKTs\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 14 Dec 2024 18:53:16 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Address deleted successfully\",\n    \"data\": [\n        {\n            \"deleted\": 1\n        }\n    ]\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Link Preview",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"url\": \"https://www.noon.com/uae-en/a50-dual-sim-lime-green-3-5gb-ram-64gb-4g-middle-east-version/N70081964V/p/?o=cd543d05d28a144a\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/preview",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"preview"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Image from external Source",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"url\": \"https://www.noon.com/uae-en/a50-dual-sim-lime-green-3-5gb-ram-64gb-4g-middle-east-version/N70081964V/p/?o=cd543d05d28a144a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/preview",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"preview"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 14 Dec 2024 16:06:51 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "468"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "CF-Ray",
+							"value": "8f1f715e7f48f894-SIN"
+						},
+						{
+							"key": "CF-Cache-Status",
+							"value": "DYNAMIC"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "br"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"2a4-IK1A9UNkAjmO2SOQ6RMpVJud4/c\""
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "rndr-id",
+							"value": "674743e8-cb3b-4e53"
+						},
+						{
+							"key": "x-powered-by",
+							"value": "Express"
+						},
+						{
+							"key": "x-render-origin-server",
+							"value": "Render"
+						},
+						{
+							"key": "Server",
+							"value": "cloudflare"
+						},
+						{
+							"key": "alt-svc",
+							"value": "h3=\":443\"; ma=86400"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"url\": \"https://www.noon.com/uae-en/a50-dual-sim-lime-green-3-5gb-ram-64gb-4g-middle-east-version/N70081964V/p/?o=cd543d05d28a144a\",\n    \"title\": \"ITEL A50 Dual SIM Lime Green 3+5GB RAM 64GB 4G - Middle East Version | Best Price UAE | Dubai, Abu Dhabi\",\n    \"description\": \"Online shopping for ITEL. Trusted Shipping to Dubai, Abu Dhabi and all UAE ✓ Great Prices ✓ Secure Shopping ✓ 100% Contactless ✓ Easy Free Returns ✓ Cash on Delivery. Shop Now\",\n    \"image\": \"https://f.nooncdn.com/p/pnsku/N70081964V/45/_/1717317359/57ad9f15-b87a-4105-b572-6041c3ddf48e.jpg?format=jpg&width=240\",\n    \"favicon\": \"https://f.nooncdn.com/s/app/com/noon/icons/favicon_v4/favicon.ico\",\n    \"domain\": \"noon.com\"\n}"
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJlbWFpbCI6InNoZWptaWxAZ21haWwuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzM0MTkxNzAzLCJleHAiOjE3MzQyNzgxMDN9.HO2Yf-nRe4pvNq65_nYnI0FEUeMG9hNTdqEUDtvG57U",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "{{url}}",
+			"value": "https://link-preview-api-t0b4.onrender.com",
+			"type": "string"
+		}
+	]
+}
