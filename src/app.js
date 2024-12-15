@@ -31,7 +31,7 @@ app.use('/preview', require('./routes/preview.routes'));
 app.use('/profile', authMiddleware, require('./routes/profile.routes'));
 app.use('/address', authMiddleware, require('./routes/address.routes'));
 app.use('/orders', authMiddleware, require('./routes/order.routes'));
-app.use('/api/product_requests', authMiddleware, require('./routes/product_request.routes'));
+app.use('/product_requests', authMiddleware, require('./routes/product_request.routes'));
 // Admin routes (require admin authentication)
 app.use('/admin', [authMiddleware, adminMiddleware], require('./routes/admin.routes'));
 
