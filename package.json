@@ -24,18 +24,17 @@
         "mysql2": "^3.11.5",
         "node-cron": "^3.0.3",
         "nodemon": "^3.1.7",
-        "puppeteer": "^23.7.0",
+        "puppeteer": "^23.11.1",
         "puppeteer-extra": "^3.3.6",
         "puppeteer-extra-plugin-stealth": "^2.11.2",
         "swagger-autogen": "^2.23.7",
         "swagger-ui-express": "^5.0.1"
     },
     "puppeteer": {
-  "browsers": {
-    "chrome": {
-      "path": "/opt/render/.cache/puppeteer/chrome"
+        "browsers": {
+            "chrome": {
+                "path": "/opt/render/.cache/puppeteer/chrome"
+            }
+        }
     }
-  }
-}
-
 }

@@ -50,8 +50,7 @@ const fetchWithFallback = async (url) => {
     try {
         console.log('Attempting to fetch with Puppeteer...');
         const browser = await puppeteer.launch({
-            headless: true,
-            executablePath: '/opt/render/.cache/puppeteer/chrome', // Ensure Puppeteer uses correct Chrome path in Render
+            headless: "new",
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
