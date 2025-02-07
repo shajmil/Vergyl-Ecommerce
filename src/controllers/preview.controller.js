@@ -18,17 +18,21 @@ const generateLinkPreview = async (req, res) => {
             return res.status(400).json({ error: 'Invalid URL format' });
         }
 
-        // Attempt to fetch the data
-        const htmlContent = await fetchWithFallback(validUrl);
+        // Fetch page content
+        let htmlContent = await fetchWithFallback(validUrl);
+        if (!htmlContent) {
+            console.log('Axios failed, attempting Puppeteer...');
+            htmlContent = await fetchWithPuppeteer(validUrl);
+        }
 
         if (!htmlContent) {
             throw new Error('Failed to fetch page content');
         }
 
-        // Load HTML content with cheerio
+        // Parse HTML with Cheerio
+        const cheerio = require('cheerio');
         const $ = cheerio.load(htmlContent);
 
-        // Extract metadata
         const getMetaTag = (name) => {
             return (
                 $(`meta[name="${name}"]`).attr('content') ||
@@ -45,10 +49,10 @@ const generateLinkPreview = async (req, res) => {
             favicon: $('link[rel="shortcut icon"]').attr('href') ||
                 $('link[rel="icon"]').attr('href'),
             domain: new URL(validUrl).hostname.replace('www.', ''),
-            author: getMetaTag('author')
+            author: getMetaTag('author'),
         };
 
-        // Clean up relative URLs
+        // Convert relative URLs to absolute
         if (preview.image && !preview.image.startsWith('http')) {
             preview.image = new URL(preview.image, validUrl).href;
         }
@@ -63,7 +67,7 @@ const generateLinkPreview = async (req, res) => {
         res.status(500).json({
             error: 'Failed to generate link preview',
             message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         });
     }
 };

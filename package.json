@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "main": "app.js",
     "scripts": {
+        "postinstall": "npx puppeteer browsers install chrome",
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "nodemon src/app.js",
         "swagger-gen": "node src/swagger/swagger.generator.js"
@@ -28,5 +29,13 @@
         "puppeteer-extra-plugin-stealth": "^2.11.2",
         "swagger-autogen": "^2.23.7",
         "swagger-ui-express": "^5.0.1"
+    },
+    "puppeteer": {
+  "browsers": {
+    "chrome": {
+      "path": "/opt/render/.cache/puppeteer/chrome"
     }
+  }
+}
+
 }

@@ -1,6 +1,7 @@
 const axios = require('axios');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const cheerio = require('cheerio');
 
 // Configure puppeteer with stealth plugin
 puppeteer.use(StealthPlugin());
@@ -13,10 +14,10 @@ const USER_AGENTS = [
     'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
 ];
 
-const fetchWithFallback = async(url) => {
+const fetchWithFallback = async (url) => {
     let lastError = null;
 
-    // Try each user agent
+    // Try fetching with different user agents
     for (const userAgent of USER_AGENTS) {
         try {
             const response = await axios.get(url, {
@@ -30,11 +31,9 @@ const fetchWithFallback = async(url) => {
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache'
                 },
-                validateStatus: function(status) {
-                    return status >= 200 && status < 300;
-                },
+                validateStatus: (status) => status >= 200 && status < 300,
                 maxRedirects: 5,
-                timeout: 10000,
+                timeout: 30000 // Increased timeout from 10s to 30s
             });
 
             if (response.data) {
@@ -47,15 +46,17 @@ const fetchWithFallback = async(url) => {
         }
     }
 
-    // If all user agents fail, try puppeteer
+    // If all user agents fail, try Puppeteer
     try {
-        console.log('Attempting to fetch with puppeteer...');
+        console.log('Attempting to fetch with Puppeteer...');
         const browser = await puppeteer.launch({
             headless: true,
+            executablePath: '/opt/render/.cache/puppeteer/chrome', // Ensure Puppeteer uses correct Chrome path in Render
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
+
         const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 });
+        await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 }); // Increased Puppeteer timeout to 30s
         const content = await page.content();
         await browser.close();
         return content;
@@ -65,4 +66,70 @@ const fetchWithFallback = async(url) => {
     }
 };
 
-module.exports = { fetchWithFallback }; 
+const generateLinkPreview = async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url) {
+            return res.status(400).json({ error: 'URL is required' });
+        }
+
+        console.log('Fetching preview for:', url);
+
+        // Validate URL
+        let validUrl;
+        try {
+            validUrl = new URL(url).href;
+        } catch (e) {
+            return res.status(400).json({ error: 'Invalid URL format' });
+        }
+
+        // Fetch page content
+        const htmlContent = await fetchWithFallback(validUrl);
+        if (!htmlContent) {
+            throw new Error('Failed to fetch page content');
+        }
+
+        // Parse HTML with Cheerio
+        const $ = cheerio.load(htmlContent);
+
+        // Extract metadata
+        const getMetaTag = (name) => {
+            return (
+                $(`meta[name="${name}"]`).attr('content') ||
+                $(`meta[property="og:${name}"]`).attr('content') ||
+                $(`meta[name="twitter:${name}"]`).attr('content')
+            );
+        };
+
+        const preview = {
+            url: validUrl,
+            title: $('title').first().text() || getMetaTag('title'),
+            description: getMetaTag('description') || $('p').first().text(),
+            image: getMetaTag('image') || $('img').first().attr('src'),
+            favicon: $('link[rel="shortcut icon"]').attr('href') ||
+                     $('link[rel="icon"]').attr('href'),
+            domain: new URL(validUrl).hostname.replace('www.', ''),
+            author: getMetaTag('author')
+        };
+
+        // Fix relative URLs
+        if (preview.image && !preview.image.startsWith('http')) {
+            preview.image = new URL(preview.image, validUrl).href;
+        }
+        if (preview.favicon && !preview.favicon.startsWith('http')) {
+            preview.favicon = new URL(preview.favicon, validUrl).href;
+        }
+
+        console.log('Generated preview:', preview);
+        res.json(preview);
+    } catch (error) {
+        console.error('Link preview error:', error);
+        res.status(500).json({
+            error: 'Failed to generate link preview',
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};
+
+module.exports = { generateLinkPreview,fetchWithFallback  };
