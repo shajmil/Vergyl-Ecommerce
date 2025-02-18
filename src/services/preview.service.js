@@ -79,4 +79,4 @@ const fetchWithFallback = async (url) => {
         throw lastError || error;
     }
 };
-module.exports = { fetchWithFallback, fetchWithPuppeteer };
+module.exports = { fetchWithFallback };
