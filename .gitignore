@@ -41,9 +41,7 @@ coverage/
 *.sublime-project
 
 # Optional: If you're using Docker
-docker-compose.override.yml
-.dockerignore
-Dockerfile
+
 
 # Optional: Ignore specific VS Code settings if using it
 .vscode/settings.json
