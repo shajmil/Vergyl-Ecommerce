@@ -8,7 +8,7 @@ puppeteer.use(StealthPlugin());
 
 // Different user agents to try
 const USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    // 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     // 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     // 'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
     // 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
@@ -26,8 +26,8 @@ const fetchWithFallback = async(url) => {
                     'Accept': 'text/html,application/xhtml+xml',
                     'Accept-Language': 'en-US,en;q=0.5',
                 },
-                timeout: 15000,
-                maxRedirects: 3
+                timeout: 30000, // Increased timeout
+                maxRedirects: 5  // Increased redirects
             });
 
             if (response.data) {
@@ -40,7 +40,7 @@ const fetchWithFallback = async(url) => {
         }
     }
 
-    // Fallback to Puppeteer
+    // Fallback to Puppeteer with increased timeouts
     try {
         console.log('Falling back to puppeteer...');
         const browser = await puppeteer.launch({
@@ -51,7 +51,9 @@ const fetchWithFallback = async(url) => {
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
                 '--single-process',
-                '--no-zygote'
+                '--no-zygote',
+                '--disable-web-security',
+                '--disable-features=IsolateOrigins,site-per-process'
             ],
             executablePath: process.env.NODE_ENV === 'production' 
                 ? '/usr/bin/google-chrome-stable' 
@@ -59,11 +61,27 @@ const fetchWithFallback = async(url) => {
         });
         
         const page = await browser.newPage();
-        await page.setDefaultNavigationTimeout(15000);
-        await page.goto(url, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 15000 
+        await page.setDefaultNavigationTimeout(30000); // Increased timeout
+        
+        // Set additional page configurations
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
         });
+
+        const response = await page.goto(url, { 
+            waitUntil: 'domcontentloaded',
+            timeout: 30000 // Increased timeout
+        });
+
+        if (!response.ok()) {
+            throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
+        }
+
         const content = await page.content();
         await browser.close();
         return content;
