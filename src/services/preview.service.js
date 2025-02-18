@@ -1,14 +1,10 @@
+
 const axios = require('axios');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const cheerio = require('cheerio');
-const NodeCache = require('node-cache'); // You'll need to install this: npm install node-cache
 
 // Configure puppeteer with stealth plugin
 puppeteer.use(StealthPlugin());
-
-// Initialize cache with 24-hour TTL
-const previewCache = new NodeCache({ stdTTL: 86400 });
 
 // Different user agents to try
 const USER_AGENTS = [
@@ -18,10 +14,10 @@ const USER_AGENTS = [
     'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
 ];
 
-const fetchWithFallback = async (url) => {
+const fetchWithFallback = async(url) => {
     let lastError = null;
 
-    // Try fetching with different user agents
+    // Try each user agent
     for (const userAgent of USER_AGENTS) {
         try {
             const response = await axios.get(url, {
@@ -35,9 +31,11 @@ const fetchWithFallback = async (url) => {
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache'
                 },
-                validateStatus: (status) => status >= 200 && status < 300,
+                validateStatus: function(status) {
+                    return status >= 200 && status < 300;
+                },
                 maxRedirects: 5,
-                timeout: 15000 // Reduced timeout for faster fallback
+                timeout: 10000,
             });
 
             if (response.data) {
@@ -50,27 +48,15 @@ const fetchWithFallback = async (url) => {
         }
     }
 
-    // If all user agents fail, try Puppeteer
+    // If all user agents fail, try puppeteer
     try {
-        console.log('Attempting to fetch with Puppeteer...');
+        console.log('Attempting to fetch with puppeteer...');
         const browser = await puppeteer.launch({
             headless: true,
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ]
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
-
         const page = await browser.newPage();
-        await page.setDefaultNavigationTimeout(15000);
-        await page.goto(url, { waitUntil: 'domcontentloaded' }); // Changed from networkidle0 for faster loading
+        await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 });
         const content = await page.content();
         await browser.close();
         return content;
@@ -79,4 +65,5 @@ const fetchWithFallback = async (url) => {
         throw lastError || error;
     }
 };
-module.exports = { fetchWithFallback };
+
+module.exports = { fetchWithFallback }; 
