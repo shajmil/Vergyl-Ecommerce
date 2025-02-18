@@ -17,46 +17,53 @@ const USER_AGENTS = [
 const fetchWithFallback = async(url) => {
     let lastError = null;
 
-    // Try each user agent
+    // Try with agents first
     for (const userAgent of USER_AGENTS) {
         try {
             const response = await axios.get(url, {
                 headers: {
                     'User-Agent': userAgent,
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept': 'text/html,application/xhtml+xml',
                     'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
                 },
-                validateStatus: function(status) {
-                    return status >= 200 && status < 300;
-                },
-                maxRedirects: 5,
-                timeout: 10000,
+                timeout: 15000,
+                maxRedirects: 3
             });
 
             if (response.data) {
-                console.log(`Successfully fetched data with user agent: ${userAgent}`);
+                console.log(`Successfully fetched with agent: ${userAgent}`);
                 return response.data;
             }
         } catch (error) {
-            console.log(`Failed with user agent ${userAgent}:`, error.message);
+            console.log(`Agent failed ${userAgent}:`, error.message);
             lastError = error;
         }
     }
 
-    // If all user agents fail, try puppeteer
+    // Fallback to Puppeteer
     try {
-        console.log('Attempting to fetch with puppeteer...');
+        console.log('Falling back to puppeteer...');
         const browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process',
+                '--no-zygote'
+            ],
+            executablePath: process.env.NODE_ENV === 'production' 
+                ? '/usr/bin/google-chrome-stable' 
+                : undefined
         });
+        
         const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 });
+        await page.setDefaultNavigationTimeout(15000);
+        await page.goto(url, { 
+            waitUntil: 'domcontentloaded',
+            timeout: 15000 
+        });
         const content = await page.content();
         await browser.close();
         return content;
@@ -66,4 +73,4 @@ const fetchWithFallback = async(url) => {
     }
 };
 
-module.exports = { fetchWithFallback }; 
+module.exports = { fetchWithFallback };
