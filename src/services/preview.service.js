@@ -1,9 +1,10 @@
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const axios = require('axios');
-const puppeteer = require('puppeteer-core');
-const chrome = require('chrome-aws-lambda');
 const cheerio = require('cheerio');
 
-// Different user agents to try
+puppeteer.use(StealthPlugin());
+
 const USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -15,7 +16,6 @@ const USER_AGENTS = [
 const fetchWithFallback = async (url) => {
     let lastError = null;
 
-    // Try fetching with different user agents
     for (const userAgent of USER_AGENTS) {
         try {
             const response = await axios.get(url, {
@@ -68,7 +68,7 @@ const fetchWithPuppeteer = async (url) => {
                 '--proxy-server="direct://"',
                 '--proxy-bypass-list=*'
             ],
-            executablePath: await chrome.executablePath,
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath(),
             headless: true
         });
 
