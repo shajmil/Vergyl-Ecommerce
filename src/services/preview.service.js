@@ -9,9 +9,9 @@ puppeteer.use(StealthPlugin());
 // Different user agents to try
 const USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
-    'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+    // 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    // 'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
+    // 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
 ];
 
 const fetchWithFallback = async(url) => {
