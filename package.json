@@ -3,10 +3,9 @@
     "version": "1.0.0",
     "main": "app.js",
     "scripts": {
-        "postinstall": "node node_modules/puppeteer/install.js",
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon src/app.js",
-        "swagger-gen": "node src/swagger/swagger.generator.js"
+        "postinstall": "npx puppeteer install",
+        "start": "node src/app.js",
+        "build": "echo 'No build step required'"
     },
     "keywords": [],
     "author": "",
@@ -34,7 +33,7 @@
     "puppeteer": {
         "browsers": {
             "chrome": {
-                "path": "/opt/render/.cache/puppeteer/chrome"
+                "path": "/usr/bin/google-chrome-stable"
             }
         }
     }
