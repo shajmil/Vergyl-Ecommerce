@@ -1,10 +1,7 @@
 const axios = require('axios');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const puppeteer = require('puppeteer-core');
+const chrome = require('chrome-aws-lambda');
 const cheerio = require('cheerio');
-
-// Configure puppeteer with stealth plugin
-puppeteer.use(StealthPlugin());
 
 // Different user agents to try
 const USER_AGENTS = [
@@ -14,6 +11,7 @@ const USER_AGENTS = [
     'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
 ];
 
+// Fetch HTML using Axios
 const fetchWithFallback = async (url) => {
     let lastError = null;
 
@@ -31,9 +29,9 @@ const fetchWithFallback = async (url) => {
                     'Cache-Control': 'no-cache',
                     'Pragma': 'no-cache'
                 },
+                timeout: 10000, // Increased timeout to 60s
                 validateStatus: (status) => status >= 200 && status < 300,
-                maxRedirects: 5,
-                timeout: 30000 // Increased timeout from 10s to 30s
+                maxRedirects: 5
             });
 
             if (response.data) {
@@ -49,86 +47,40 @@ const fetchWithFallback = async (url) => {
     // If all user agents fail, try Puppeteer
     try {
         console.log('Attempting to fetch with Puppeteer...');
-        const browser = await puppeteer.launch({
-            headless: "new",
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-
-        const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 }); // Increased Puppeteer timeout to 30s
-        const content = await page.content();
-        await browser.close();
-        return content;
+        return await fetchWithPuppeteer(url);
     } catch (error) {
         console.log('Puppeteer attempt failed:', error.message);
         throw lastError || error;
     }
 };
 
-const generateLinkPreview = async (req, res) => {
+// Fetch HTML using Puppeteer
+const fetchWithPuppeteer = async (url) => {
+    let browser;
     try {
-        const { url } = req.body;
-        if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
-        }
-
-        console.log('Fetching preview for:', url);
-
-        // Validate URL
-        let validUrl;
-        try {
-            validUrl = new URL(url).href;
-        } catch (e) {
-            return res.status(400).json({ error: 'Invalid URL format' });
-        }
-
-        // Fetch page content
-        const htmlContent = await fetchWithFallback(validUrl);
-        if (!htmlContent) {
-            throw new Error('Failed to fetch page content');
-        }
-
-        // Parse HTML with Cheerio
-        const $ = cheerio.load(htmlContent);
-
-        // Extract metadata
-        const getMetaTag = (name) => {
-            return (
-                $(`meta[name="${name}"]`).attr('content') ||
-                $(`meta[property="og:${name}"]`).attr('content') ||
-                $(`meta[name="twitter:${name}"]`).attr('content')
-            );
-        };
-
-        const preview = {
-            url: validUrl,
-            title: $('title').first().text() || getMetaTag('title'),
-            description: getMetaTag('description') || $('p').first().text(),
-            image: getMetaTag('image') || $('img').first().attr('src'),
-            favicon: $('link[rel="shortcut icon"]').attr('href') ||
-                     $('link[rel="icon"]').attr('href'),
-            domain: new URL(validUrl).hostname.replace('www.', ''),
-            author: getMetaTag('author')
-        };
-
-        // Fix relative URLs
-        if (preview.image && !preview.image.startsWith('http')) {
-            preview.image = new URL(preview.image, validUrl).href;
-        }
-        if (preview.favicon && !preview.favicon.startsWith('http')) {
-            preview.favicon = new URL(preview.favicon, validUrl).href;
-        }
-
-        console.log('Generated preview:', preview);
-        res.json(preview);
-    } catch (error) {
-        console.error('Link preview error:', error);
-        res.status(500).json({
-            error: 'Failed to generate link preview',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        browser = await puppeteer.launch({
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process',
+                '--proxy-server="direct://"',
+                '--proxy-bypass-list=*'
+            ],
+            executablePath: await chrome.executablePath,
+            headless: true
         });
+
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 10000 }); // Increased timeout to 60s
+        const content = await page.content();
+        await browser.close();
+        return content;
+    } catch (error) {
+        if (browser) await browser.close();
+        throw new Error(`Puppeteer failed: ${error.message}`);
     }
 };
 
-module.exports = { generateLinkPreview,fetchWithFallback  };
+module.exports = { fetchWithFallback, fetchWithPuppeteer };
