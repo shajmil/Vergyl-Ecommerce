@@ -14,36 +14,91 @@ const USER_AGENTS = [
     // 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
 ];
 
-const fetchWithFallback = async(url) => {
-    let lastError = null;
+// const fetchWithFallback = async(url) => {
+//     let lastError = null;
 
-    // Try with agents first
-    for (const userAgent of USER_AGENTS) {
-        try {
-            const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': userAgent,
-                    'Accept': 'text/html,application/xhtml+xml',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                },
-                timeout: 30000, // Increased timeout
-                maxRedirects: 5  // Increased redirects
-            });
+//     // Try with agents first
+//     for (const userAgent of USER_AGENTS) {
+//         try {
+//             const response = await axios.get(url, {
+//                 headers: {
+//                     'User-Agent': userAgent,
+//                     'Accept': 'text/html,application/xhtml+xml',
+//                     'Accept-Language': 'en-US,en;q=0.5',
+//                 },
+//                 timeout: 30000, // Increased timeout
+//                 maxRedirects: 5  // Increased redirects
+//             });
 
-            if (response.data) {
-                console.log(`Successfully fetched with agent: ${userAgent}`);
-                return response.data;
-            }
-        } catch (error) {
-            console.log(`Agent failed ${userAgent}:`, error.message);
-            lastError = error;
-        }
-    }
+//             if (response.data) {
+//                 console.log(`Successfully fetched with agent: ${userAgent}`);
+//                 return response.data;
+//             }
+//         } catch (error) {
+//             console.log(`Agent failed ${userAgent}:`, error.message);
+//             lastError = error;
+//         }
+//     }
 
-    // Fallback to Puppeteer with increased timeouts
-    try {
-        console.log('Falling back to puppeteer...');
-        const browser = await puppeteer.launch({
+//     // Fallback to Puppeteer with increased timeouts
+//     try {
+//         console.log('Falling back to puppeteer...');
+//         const browser = await puppeteer.launch({
+//             headless: true,
+//             args: [
+//                 '--no-sandbox',
+//                 '--disable-setuid-sandbox',
+//                 '--disable-dev-shm-usage',
+//                 '--disable-gpu',
+//                 '--single-process',
+//                 '--no-zygote',
+//                 '--disable-web-security',
+//                 '--disable-features=IsolateOrigins,site-per-process'
+//             ],
+//             executablePath: process.env.NODE_ENV === 'production' 
+//                 ? '/usr/bin/google-chrome-stable' 
+//                 : undefined
+//         });
+        
+//         const page = await browser.newPage();
+//         await page.setDefaultNavigationTimeout(30000); // Increased timeout
+        
+//         // Set additional page configurations
+//         await page.setRequestInterception(true);
+//         page.on('request', (request) => {
+//             if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
+//                 request.abort();
+//             } else {
+//                 request.continue();
+//             }
+//         });
+
+//         const response = await page.goto(url, { 
+//             waitUntil: 'domcontentloaded',
+//             timeout: 30000 // Increased timeout
+//         });
+
+//         if (!response.ok()) {
+//             throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
+//         }
+
+//         const content = await page.content();
+//         await browser.close();
+//         return content;
+//     } catch (error) {
+//         console.log('Puppeteer attempt failed:', error.message);
+//         throw lastError || error;
+//     }
+// };
+const NodeCache = require('node-cache');
+const previewCache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
+
+// Reusable browser instance
+let browserInstance = null;
+
+async function getBrowser() {
+    if (!browserInstance) {
+        browserInstance = await puppeteer.launch({
             headless: true,
             args: [
                 '--no-sandbox',
@@ -54,41 +109,68 @@ const fetchWithFallback = async(url) => {
                 '--no-zygote',
                 '--disable-web-security',
                 '--disable-features=IsolateOrigins,site-per-process'
-            ],
-            executablePath: process.env.NODE_ENV === 'production' 
-                ? '/usr/bin/google-chrome-stable' 
-                : undefined
+            ]
         });
-        
+    }
+    return browserInstance;
+}
+
+const fetchWithFallback = async(url) => {
+    // Check cache first
+
+    const cachedData = previewCache.get(url);
+    if (cachedData) {
+        console.log('Returning cached data for:', url);
+        return cachedData;
+    }
+
+    try {
+        console.log('Attempting with puppeteer...');
+        const browser = await getBrowser();
         const page = await browser.newPage();
-        await page.setDefaultNavigationTimeout(30000); // Increased timeout
         
-        // Set additional page configurations
+        // Optimize performance
         await page.setRequestInterception(true);
         page.on('request', (request) => {
-            if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
-                request.abort();
-            } else {
+            const resourceType = request.resourceType();
+            if (['document', 'xhr', 'fetch'].includes(resourceType)) {
                 request.continue();
+            } else {
+                request.abort();
             }
         });
 
+        // Optimize page settings
+        await Promise.all([
+            page.setViewport({ width: 375, height: 667, isMobile: true }),
+            page.setDefaultNavigationTimeout(15000),
+            page.setCacheEnabled(true),
+            page.setJavaScriptEnabled(false)
+        ]);
+
         const response = await page.goto(url, { 
             waitUntil: 'domcontentloaded',
-            timeout: 30000 // Increased timeout
+            timeout: 15000 
         });
 
-        if (!response.ok()) {
-            throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
-        }
-
         const content = await page.content();
-        await browser.close();
+        await page.close(); // Close page but keep browser
+
+        // Cache the result
+        previewCache.set(url, content);
         return content;
-    } catch (error) {
+    } catch (error) { 
         console.log('Puppeteer attempt failed:', error.message);
-        throw lastError || error;
+        throw error;
     }
 };
+
+// Cleanup function for graceful shutdo wn
+process.on('SIGINT', async () => {
+    if (browserInstance) {
+        await browserInstance.close();
+    }
+    process.exit();
+});
 
 module.exports = { fetchWithFallback };
