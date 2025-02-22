@@ -39,7 +39,9 @@ const generateLinkPreview = async (req, res) => {
 
         const preview = {
             url: validUrl,
-            title: $('title').first().text(),
+            title: $('meta[name="extracted-title"]').attr('content') || 
+                   getMetaTag($, 'title') || 
+                   $('title').first().text().split('|')[0].trim(),
             description: getMetaTag($, 'description') || $('p').first().text(),
             image: $('meta[name="product-image"]').attr('content') || 
                    getMetaTag($, 'image') ||
