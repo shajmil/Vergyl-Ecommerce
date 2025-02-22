@@ -1,5 +1,3 @@
-
-
 const { fetchWithFallback } = require('../services/preview.service');
 const cheerio = require('cheerio');
 
@@ -41,9 +39,11 @@ const generateLinkPreview = async (req, res) => {
 
         const preview = {
             url: validUrl,
-            title: $('title').first().text() || getMetaTag('title'),
-            description: getMetaTag('description') || $('p').first().text(),
-            image: getMetaTag('image') || $('img').first().attr('src'),
+            title: $('title').first().text(),
+            description: getMetaTag($, 'description') || $('p').first().text(),
+            image: $('meta[name="product-image"]').attr('content') || 
+                   getMetaTag($, 'image') ||
+                   $('img').first().attr('src'),
             favicon: $('link[rel="shortcut icon"]').attr('href') ||
                 $('link[rel="icon"]').attr('href'),
             domain: new URL(validUrl).hostname.replace('www.', ''),

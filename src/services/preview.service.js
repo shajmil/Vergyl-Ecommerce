@@ -1,7 +1,7 @@
-
 const axios = require('axios');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const NodeCache = require('node-cache');
 
 // Configure puppeteer with stealth plugin
 puppeteer.use(StealthPlugin());
@@ -90,8 +90,13 @@ const USER_AGENTS = [
 //         throw lastError || error;
 //     }
 // };
-const NodeCache = require('node-cache');
-const previewCache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
+
+// Increased cache with better memory management
+const previewCache = new NodeCache({ 
+    stdTTL: 86400,
+    checkperiod: 3600,
+    maxKeys: 1000 
+});
 
 // Reusable browser instance
 let browserInstance = null;
@@ -106,9 +111,13 @@ async function getBrowser() {
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
                 '--single-process',
-                '--no-zygote',
                 '--disable-web-security',
-                '--disable-features=IsolateOrigins,site-per-process'
+                '--disable-features=IsolateOrigins',
+                '--disable-extensions',
+                '--disable-audio-output',
+                '--disable-remote-fonts',
+                '--disable-background-networking',
+                '--disable-default-apps'
             ]
         });
     }
@@ -116,60 +125,127 @@ async function getBrowser() {
 }
 
 const fetchWithFallback = async(url) => {
-    // Check cache first
-
     const cachedData = previewCache.get(url);
-    if (cachedData) {
-        console.log('Returning cached data for:', url);
-        return cachedData;
-    }
+    if (cachedData) return cachedData;
 
     try {
-        console.log('Attempting with puppeteer...');
         const browser = await getBrowser();
         const page = await browser.newPage();
         
-        // Optimize performance
+        // Aggressive performance optimization
         await page.setRequestInterception(true);
         page.on('request', (request) => {
+            // Only allow HTML and essential resources
             const resourceType = request.resourceType();
-            if (['document', 'xhr', 'fetch'].includes(resourceType)) {
+            if (['document', 'image'].includes(resourceType)) {
                 request.continue();
             } else {
                 request.abort();
             }
         });
 
-        // Optimize page settings
+        // Optimized page settings for faster load
         await Promise.all([
-            page.setViewport({ width: 375, height: 667, isMobile: true }),
-            page.setDefaultNavigationTimeout(15000),
+            page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 }),
+            page.setDefaultNavigationTimeout(8000), // Reduced timeout
             page.setCacheEnabled(true),
-            page.setJavaScriptEnabled(false)
+            page.setJavaScriptEnabled(false),
+            page.setBypassCSP(true)
         ]);
 
-        const response = await page.goto(url, { 
+        await page.goto(url, { 
             waitUntil: 'domcontentloaded',
-            timeout: 15000 
+            timeout: 8000 
         });
 
-        const content = await page.content();
-        await page.close(); // Close page but keep browser
+        // Extract only what we need
+        const { content, image } = await page.evaluate(() => {
+            // Universal selectors for product images
+            const findBestImage = () => {
+                // Common image selectors across e-commerce sites
+                const selectors = [
+                    // High-res product image attributes
+                    'img[data-old-hires]',
+                    'img[data-zoom-image]',
+                    'img[data-large-image]',
+                    
+                    // Meta tags
+                    'meta[property="og:image"]',
+                    'meta[name="twitter:image"]',
+                    'meta[property="product:image"]',
+                    
+                    // Common product image selectors
+                    '.product-image img',
+                    '#product-image img',
+                    '.gallery-image img',
+                    '[data-main-image]',
+                    '[id*="product"][id*="image"]',
+                    '[class*="product"][class*="image"]',
+                    
+                    // Fallback to any large image
+                    'img[width="500"]',
+                    'img[width="600"]',
+                    'img[width="800"]'
+                ];
 
-        // Cache the result
-        previewCache.set(url, content);
-        return content;
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        const src = element.getAttribute('data-old-hires') || 
+                                  element.getAttribute('data-zoom-image') || 
+                                  element.getAttribute('content') ||
+                                  element.src;
+                        if (src && !src.includes('logo') && !src.includes('icon')) {
+                            return src;
+                        }
+                    }
+                }
+
+                // Last resort: find largest image
+                let bestImage = null;
+                let maxArea = 0;
+                document.querySelectorAll('img').forEach(img => {
+                    if (img.width > 200 && img.height > 200) {
+                        const area = img.width * img.height;
+                        if (area > maxArea) {
+                            maxArea = area;
+                            bestImage = img.src;
+                        }
+                    }
+                });
+                return bestImage;
+            };
+
+            return {
+                content: document.documentElement.innerHTML,
+                image: findBestImage()
+            };
+        });
+
+        await page.close();
+
+        // Minimal HTML with only what we need
+        const enhancedContent = `
+            <html>
+                <head>
+                    <title>${content.match(/<title>(.*?)<\/title>/)?.[1] || ''}</title>
+                    ${image ? `<meta name="product-image" content="${image}">` : ''}
+                </head>
+                <body>${content}</body>
+            </html>
+        `;
+
+        previewCache.set(url, enhancedContent);
+        return enhancedContent;
     } catch (error) { 
-        console.log('Puppeteer attempt failed:', error.message);
+        console.error('Preview generation failed:', error.message);
         throw error;
     }
 };
 
 // Cleanup function for graceful shutdo wn
 process.on('SIGINT', async () => {
-    if (browserInstance) {
-        await browserInstance.close();
-    }
+    if (browserInstance) await browserInstance.close();
     process.exit();
 });
 
