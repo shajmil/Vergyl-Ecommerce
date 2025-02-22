@@ -1,100 +1,42 @@
-
 const axios = require('axios');
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const cheerio = require('cheerio');
+const NodeCache = require('node-cache');
+const storage = require('node-persist');
 
 // Configure puppeteer with stealth plugin
 puppeteer.use(StealthPlugin());
 
-// Different user agents to try
-const USER_AGENTS = [
-    // 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    // 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    // 'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
-    // 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
-];
+// Initialize in-memory cache
+const memoryCache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 
-// const fetchWithFallback = async(url) => {
-//     let lastError = null;
+// Initialize persistent storage
+(async () => {
+    await storage.init({
+        dir: './cache',
+        stringify: JSON.stringify,
+        parse: JSON.parse,
+        encoding: 'utf8',
+        logging: false,
+        ttl: 24 * 60 * 60 * 1000 // 24 hours
+    });
+})();
 
-//     // Try with agents first
-//     for (const userAgent of USER_AGENTS) {
-//         try {
-//             const response = await axios.get(url, {
-//                 headers: {
-//                     'User-Agent': userAgent,
-//                     'Accept': 'text/html,application/xhtml+xml',
-//                     'Accept-Language': 'en-US,en;q=0.5',
-//                 },
-//                 timeout: 30000, // Increased timeout
-//                 maxRedirects: 5  // Increased redirects
-//             });
+// Constants
+const PAGE_TIMEOUT = 15000; // 15 seconds
+const VIEWPORT = { width: 375, height: 667, isMobile: true };
 
-//             if (response.data) {
-//                 console.log(`Successfully fetched with agent: ${userAgent}`);
-//                 return response.data;
-//             }
-//         } catch (error) {
-//             console.log(`Agent failed ${userAgent}:`, error.message);
-//             lastError = error;
-//         }
-//     }
+// Optimize cache settings
+const previewCache = new NodeCache({ 
+    stdTTL: 3600, // 1 hour cache
+    checkperiod: 600, // Check for expired entries every 10 minutes
+    useClones: false // Disable cloning for better performance
+});
 
-//     // Fallback to Puppeteer with increased timeouts
-//     try {
-//         console.log('Falling back to puppeteer...');
-//         const browser = await puppeteer.launch({
-//             headless: true,
-//             args: [
-//                 '--no-sandbox',
-//                 '--disable-setuid-sandbox',
-//                 '--disable-dev-shm-usage',
-//                 '--disable-gpu',
-//                 '--single-process',
-//                 '--no-zygote',
-//                 '--disable-web-security',
-//                 '--disable-features=IsolateOrigins,site-per-process'
-//             ],
-//             executablePath: process.env.NODE_ENV === 'production' 
-//                 ? '/usr/bin/google-chrome-stable' 
-//                 : undefined
-//         });
-        
-//         const page = await browser.newPage();
-//         await page.setDefaultNavigationTimeout(30000); // Increased timeout
-        
-//         // Set additional page configurations
-//         await page.setRequestInterception(true);
-//         page.on('request', (request) => {
-//             if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
-//                 request.abort();
-//             } else {
-//                 request.continue();
-//             }
-//         });
-
-//         const response = await page.goto(url, { 
-//             waitUntil: 'domcontentloaded',
-//             timeout: 30000 // Increased timeout
-//         });
-
-//         if (!response.ok()) {
-//             throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
-//         }
-
-//         const content = await page.content();
-//         await browser.close();
-//         return content;
-//     } catch (error) {
-//         console.log('Puppeteer attempt failed:', error.message);
-//         throw lastError || error;
-//     }
-// };
-const NodeCache = require('node-cache');
-const previewCache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
-
-// Reusable browser instance
+// Browser management
 let browserInstance = null;
+let isClosing = false;
 
 async function getBrowser() {
     if (!browserInstance) {
@@ -107,60 +49,138 @@ async function getBrowser() {
                 '--disable-gpu',
                 '--single-process',
                 '--no-zygote',
-                '--disable-web-security',
-                '--disable-features=IsolateOrigins,site-per-process'
+                '--disable-features=IsolateOrigins,site-per-process',
+                '--disable-extensions',
+                '--disable-component-extensions-with-background-pages',
+                '--disable-default-apps',
+                '--mute-audio'
             ]
+        });
+        let pageCount = 0;
+        browserInstance.on('targetcreated', async () => {
+            pageCount++;
+            if (pageCount >= 100) {
+                await restartBrowser();
+                pageCount = 0;
+            }
         });
     }
     return browserInstance;
 }
 
+/**
+ * Restart browser instance
+ */
+async function restartBrowser() {
+    isClosing = true;
+    if (browserInstance) {
+        await browserInstance.close();
+        browserInstance = null;
+    }
+    isClosing = false;
+}
+
+/**
+ * Extract metadata from HTML content
+ * @param {string} html 
+ * @param {string} baseUrl 
+ * @returns {Object}
+ */
+function extractMetadata(html, baseUrl) {
+    const $ = cheerio.load(html);
+    
+    const preview = {
+        url: baseUrl,
+        title: $('title').first().text() || $('meta[property="og:title"]').attr('content'),
+        description: $('meta[name="description"]').attr('content') || 
+                    $('meta[property="og:description"]').attr('content') ||
+                    $('p').first().text(),
+        image: $('meta[property="og:image"]').attr('content') || 
+               $('img').first().attr('src'),
+        favicon: $('link[rel="shortcut icon"]').attr('href') ||
+                $('link[rel="icon"]').attr('href'),
+        domain: new URL(baseUrl).hostname.replace('www.', '')
+    };
+
+    // Make URLs absolute
+    ['image', 'favicon'].forEach(key => {
+        if (preview[key] && !preview[key].startsWith('http')) {
+            preview[key] = new URL(preview[key], baseUrl).href;
+        }
+    });
+
+    return preview;
+} 
+
 const fetchWithFallback = async(url) => {
     // Check cache first
-
     const cachedData = previewCache.get(url);
     if (cachedData) {
         console.log('Returning cached data for:', url);
         return cachedData;
     }
 
+    // Try fast axios fetch first
+    try {
+        const response = await axios.get(url, {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (compatible; LinkPreviewBot/1.0)',
+                'Accept': 'text/html',
+            },
+            maxRedirects: 3
+        });
+        
+        if (response.data) {
+            previewCache.set(url, response.data);
+            return response.data;
+        }
+    } catch (error) {
+        console.log('Axios attempt failed, falling back to puppeteer:', error.message);
+    }
+
+    // Fallback to puppeteer
     try {
         console.log('Attempting with puppeteer...');
         const browser = await getBrowser();
         const page = await browser.newPage();
         
-        // Optimize performance
-        await page.setRequestInterception(true);
+        // Aggressive performance optimizations
+        await Promise.all([
+            page.setRequestInterception(true),
+            page.setDefaultNavigationTimeout(10000),
+            page.setViewport({ width: 375, height: 667, isMobile: true }),
+            page.setCacheEnabled(true),
+            page.setJavaScriptEnabled(false),
+            page.setBypassCSP(true)
+        ]);
+
+        // Strict resource blocking
         page.on('request', (request) => {
             const resourceType = request.resourceType();
-            if (['document', 'xhr', 'fetch'].includes(resourceType)) {
+            if (resourceType === 'document') {
                 request.continue();
             } else {
                 request.abort();
             }
         });
 
-        // Optimize page settings
-        await Promise.all([
-            page.setViewport({ width: 375, height: 667, isMobile: true }),
-            page.setDefaultNavigationTimeout(15000),
-            page.setCacheEnabled(true),
-            page.setJavaScriptEnabled(false)
-        ]);
-
         const response = await page.goto(url, { 
             waitUntil: 'domcontentloaded',
-            timeout: 15000 
+            timeout: 10000 
         });
 
         const content = await page.content();
-        await page.close(); // Close page but keep browser
+        await page.close();
 
-        // Cache the result
-        previewCache.set(url, content);
+        // Cache successful results
+        if (content) {
+            previewCache.set(url, content);
+        }
+        
         return content;
     } catch (error) { 
-        console.log('Puppeteer attempt failed:', error.message);
+        console.error('Puppeteer attempt failed:', error.message);
         throw error;
     }
 };
