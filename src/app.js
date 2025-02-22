@@ -66,7 +66,7 @@ async function checkApiHealth() {
 
         while (Date.now() - startTime < timeout) {
             try {
-                const response = await axios.get('https://link-preview-api-t0b4.onrender.com/');
+                const response = await axios.get('https://vergyl-ecommerce-docker.onrender.com');
                 
                 if (response.status === 200) {
                     console.log(`[${new Date().toISOString()}] API is responding successfully`);
