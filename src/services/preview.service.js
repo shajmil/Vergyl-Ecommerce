@@ -117,12 +117,16 @@ async function getBrowser() {
                 '--disable-audio-output',
                 '--disable-remote-fonts',
                 '--disable-background-networking',
-                '--disable-default-apps'
+                '--disable-default-apps',
+                // Add additional arguments to appear more human-like
+                '--window-size=1920,1080',
+                '--start-maximized'
             ]
         });
     }
     return browserInstance;
 }
+
 const fetchWithFallback = async(url) => {
     const cachedData = previewCache.get(url);
     if (cachedData) return cachedData;
@@ -131,32 +135,74 @@ const fetchWithFallback = async(url) => {
         const browser = await getBrowser();
         const page = await browser.newPage();
         
+        // Set a more realistic user agent
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        
+        // Add additional headers to appear more legitimate
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        });
+
+        // Modify request interception to allow more resources
         await page.setRequestInterception(true);
         page.on('request', (request) => {
             const resourceType = request.resourceType();
-            if (['document', 'image'].includes(resourceType)) {
+            if (['document', 'image', 'stylesheet'].includes(resourceType)) {
                 request.continue();
             } else {
                 request.abort();
             }
         });
-        
 
         await Promise.all([
-            page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 }),
-            page.setDefaultNavigationTimeout(8000),
+            page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 }),
+            page.setDefaultNavigationTimeout(15000),
             page.setCacheEnabled(true),
-            page.setJavaScriptEnabled(false),
+            page.setJavaScriptEnabled(true), // Enable JavaScript for Amazon
             page.setBypassCSP(true)
         ]);
 
-        await page.goto(url, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 8000 
+        // Use delay function that works with Puppeteer
+        await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1000) + 500));
+
+        const response = await page.goto(url, { 
+            waitUntil: 'networkidle0', // Wait for network to be idle
+            timeout: 15000 
         });
+
+        // Handle Amazon-specific logic
+        if (url.includes('amazon')) {
+            // Wait for product title to load
+            await page.waitForSelector('#productTitle, .product-title-word-break', { timeout: 5000 }).catch(() => {});
+            
+            // Use standard setTimeout instead of waitForTimeout
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
         const { content, image, title } = await page.evaluate(() => {
             const findProductTitle = () => {
+                // Amazon-specific selectors first
+                if (window.location.hostname.includes('amazon')) {
+                    const amazonSelectors = [
+                        '#productTitle',
+                        '.product-title-word-break',
+                        '#title',
+                        '.a-size-large.product-title-word-break'
+                    ];
+                    
+                    for (const selector of amazonSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            const text = element.textContent.trim();
+                            if (text) return text;
+                        }
+                    }
+                }
+
                 // Try structured data first (JSON-LD)
                 const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
                 for (const script of jsonLdScripts) {
@@ -256,6 +302,23 @@ const fetchWithFallback = async(url) => {
             };
 
             const findBestImage = () => {
+                // Amazon-specific image selectors first
+                if (window.location.hostname.includes('amazon')) {
+                    const amazonImageSelectors = [
+                        '#landingImage',
+                        '#imgBlkFront',
+                        '#main-image',
+                        '#prodImage'
+                    ];
+                    
+                    for (const selector of amazonImageSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            return element.src || element.getAttribute('data-old-hires') || element.getAttribute('data-a-dynamic-image');
+                        }
+                    }
+                }
+
                 const imageSelectors = [
                     // High-res and zoom images
                     'img[data-zoom-image]',
@@ -337,6 +400,7 @@ const fetchWithFallback = async(url) => {
         throw error;
     }
 };
+
 // Cleanup function for graceful shutdo wn
 process.on('SIGINT', async () => {
     if (browserInstance) await browserInstance.close();
