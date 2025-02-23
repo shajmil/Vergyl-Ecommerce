@@ -135,160 +135,224 @@ const fetchWithFallback = async(url) => {
         const browser = await getBrowser();
         const page = await browser.newPage();
 
-        // Enhanced browser configuration
+        // Randomize viewport slightly
+        const width = 1920 + Math.floor(Math.random() * 100);
+        const height = 1080 + Math.floor(Math.random() * 100);
+        
         await Promise.all([
-            page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 }),
+            page.setViewport({ width, height, deviceScaleFactor: 1 }),
             page.setDefaultNavigationTimeout(20000),
             page.setJavaScriptEnabled(true),
+            // Enhanced anti-bot evasion
             page.evaluateOnNewDocument(() => {
-                // Advanced fingerprint evasion
-                const originalQuery = window.navigator.permissions.query;
-                window.navigator.permissions.query = (parameters) => (
-                    parameters.name === 'notifications' ?
-                        Promise.resolve({ state: Notification.permission }) :
-                        originalQuery(parameters)
-                );
-                
-                Object.defineProperties(navigator, {
-                    webdriver: { get: () => undefined },
-                    plugins: {
-                        get: () => [
-                            { name: 'Chrome PDF Plugin' },
-                            { name: 'Chrome PDF Viewer' },
-                            { name: 'Native Client' }
-                        ]
-                    }
-                });
-
                 window.navigator.chrome = {
                     runtime: {},
                     loadTimes: function() {},
                     csi: function() {},
                     app: {}
                 };
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'plugins', { get: () => [
+                    { name: 'Chrome PDF Plugin' },
+                    { name: 'Chrome PDF Viewer' },
+                    { name: 'Native Client' }
+                ]});
             })
         ]);
 
-        // Site-specific configurations
-        const hostname = new URL(url).hostname;
-        const siteConfig = getSiteConfig(hostname);
+        // Rotate user agents
+        const userAgents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        ];
+        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
         
-        await page.setUserAgent(siteConfig.userAgent);
+        await page.setUserAgent(randomUserAgent);
+        
+        // Set cookies and localStorage for Amazon
+        if (url.includes('amazon')) {
+            const domain = new URL(url).hostname;
+            await page.setCookie(
+                {
+                    name: 'session-id',
+                    value: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                    domain: `.${domain}`,
+                    expires: Date.now() + 86400000
+                },
+                {
+                    name: 'i18n-prefs',
+                    value: 'USD',
+                    domain: `.${domain}`
+                }
+            );
+        }
+
         await page.setExtraHTTPHeaders({
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'sec-ch-ua': `"Not_A Brand";v="8", "Chromium";v="120"`,
             'sec-ch-ua-platform': '"Windows"',
             'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            ...siteConfig.headers
+            'Cache-Control': 'max-age=0'
         });
 
-        // Set site-specific cookies
-        if (siteConfig.cookies) {
-            await page.setCookie(...siteConfig.cookies);
-        }
-
-        // Enhanced request interception
+        // Optimize request handling
         await page.setRequestInterception(true);
         page.on('request', (request) => {
             const resourceType = request.resourceType();
-            const requestUrl = request.url().toLowerCase();
+            const url = request.url().toLowerCase();
             
-            if (siteConfig.allowedResources(resourceType, requestUrl)) {
+            if (url.includes('amazon')) {
+                if (['document', 'xhr', 'fetch'].includes(resourceType) ||
+                    url.includes('product-image') || url.includes('images/I/')) {
+                    request.continue();
+                } else {
+                    request.abort();
+                }
+            } else if (['document', 'image'].includes(resourceType)) {
                 request.continue();
             } else {
                 request.abort();
             }
         });
 
-        // Site-specific navigation options
+        // Enhanced page load strategy
         const response = await page.goto(url, {
-            waitUntil: siteConfig.waitUntil,
-            timeout: siteConfig.timeout
+            waitUntil: ['domcontentloaded', 'networkidle2'],
+            timeout: 20000
         });
 
-        // Wait for site-specific selectors
-        if (siteConfig.waitForSelectors) {
+        // Handle Amazon specific logic
+        if (url.includes('amazon')) {
+            // Wait for product container
             await Promise.race([
-                ...siteConfig.waitForSelectors.map(selector => 
-                    page.waitForSelector(selector, { timeout: 5000 }).catch(() => {})
-                ),
+                page.waitForSelector('#dp-container'),
+                page.waitForSelector('#productTitle'),
+                page.waitForSelector('.product-title-word-break'),
                 new Promise(resolve => setTimeout(resolve, 5000))
             ]);
+
+            // Check for CAPTCHA
+            const isCaptcha = await page.evaluate(() => {
+                return document.body.textContent.includes('not a robot') ||
+                       document.body.textContent.includes('Captcha') ||
+                       document.title === 'Amazon.in' ||
+                       document.title === 'Amazon.ae';
+            });
+
+            if (isCaptcha) {
+                await page.close();
+                throw new Error('Captcha detected, retrying with different configuration');
+            }
         }
 
-        // Check for anti-bot pages
-        const isBlocked = await page.evaluate(siteConfig.isBlocked);
-        if (isBlocked) {
-            await page.close();
-            throw new Error(`Access blocked by ${hostname}`);
-        }
+        // Rest of your existing evaluate code for content extraction...
+        const { content, image, title } = await page.evaluate(() => {
+            const findProductTitle = () => {
+                // Try meta tags first (faster)
+                const metaTitleSelectors = [
+                    'meta[property="og:title"]',
+                    'meta[name="twitter:title"]',
+                    'meta[property="product:title"]',
+                    'meta[name="title"]'
+                ];
 
-        const { content, image, title, description } = await page.evaluate((config) => {
-            const getMetaContent = (selectors) => {
-                for (const selector of selectors) {
-                    const element = document.querySelector(selector);
-                    if (element?.content || element?.textContent) {
-                        return (element.content || element.textContent).trim();
+                for (const selector of metaTitleSelectors) {
+                    const meta = document.querySelector(selector);
+                    if (meta?.content) {
+                        const content = meta.content.trim();
+                        if (content) return content;
                     }
                 }
-                return null;
+
+                // Try common product title elements
+                const titleSelectors = [
+                    '#productTitle',
+                    '.product-title-word-break',
+                    '.product__title',
+                    '.product-single__title',
+                    '[class*="product"][class*="title"]',
+                    '[class*="product"][class*="name"]',
+                    'h1.title',
+                    'h1:first-of-type'
+                ];
+
+                for (const selector of titleSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        const text = element.textContent.trim();
+                        if (text && text.length > 3) {
+                            return text.replace(/\s+/g, ' ').trim();
+                        }
+                    }
+                }
+
+                return document.title.split(/[|\-–—]/)[0].trim();
             };
 
-            // Site-specific + generic selectors
-            const titleSelectors = [
-                ...config.titleSelectors,
-                'meta[property="og:title"]',
-                'meta[name="twitter:title"]',
-                'meta[property="product:title"]',
-                'h1',
-                '#productTitle',
-                '.pdp-title',
-                '.product-title'
-            ];
+            const findBestImage = () => {
+                // Try meta images first (faster)
+                const metaImageSelectors = [
+                    'meta[property="og:image"]',
+                    'meta[name="twitter:image"]',
+                    'meta[property="product:image"]'
+                ];
 
-            const imageSelectors = [
-                ...config.imageSelectors,
-                'meta[property="og:image"]',
-                'meta[name="twitter:image"]',
-                'meta[property="product:image"]',
-                '.primary-image img',
-                '.product-image img'
-            ];
+                for (const selector of metaImageSelectors) {
+                    const meta = document.querySelector(selector);
+                    if (meta?.content) return meta.content;
+                }
 
-            const descriptionSelectors = [
-                ...config.descriptionSelectors,
-                'meta[property="og:description"]',
-                'meta[name="description"]',
-                'meta[name="twitter:description"]',
-                '.product-description',
-                '#productDescription'
-            ];
+                // Try product images
+                const imageSelectors = [
+                    '#landingImage',
+                    '#imgBlkFront',
+                    '.product__image img',
+                    '.product-single__image img',
+                    '.product-featured-img',
+                    '[data-zoom-image]'
+                ];
+
+                for (const selector of imageSelectors) {
+                    const img = document.querySelector(selector);
+                    if (img) {
+                        return img.src || img.getAttribute('data-zoom-image') || 
+                               img.getAttribute('data-large-image') || 
+                               img.getAttribute('data-old-hires');
+                    }
+                }
+
+                // Fallback to largest visible image
+                let bestImage = null;
+                let maxArea = 0;
+                document.querySelectorAll('img').forEach(img => {
+                    if (img.offsetWidth > 200 && img.offsetHeight > 200) {
+                        const area = img.offsetWidth * img.offsetHeight;
+                        if (area > maxArea && !img.src.includes('logo')) {
+                            maxArea = area;
+                            bestImage = img.src;
+                        }
+                    }
+                });
+                return bestImage;
+            };
 
             return {
                 content: document.documentElement.innerHTML,
-                title: getMetaContent(titleSelectors) || document.title,
-                image: getMetaContent(imageSelectors),
-                description: getMetaContent(descriptionSelectors)
+                image: findBestImage(),
+                title: findProductTitle()
             };
-        }, siteConfig);
+        });
 
         await page.close();
-
-        // Validate extracted content
-        if (!title || title.includes('Something went wrong') || title.includes('Access Denied')) {
-            throw new Error(`Failed to extract content from ${hostname}`);
-        }
 
         const enhancedContent = `
             <html>
                 <head>
-                    <title>${title}</title>
+                    <title>${title || ''}</title>
                     ${image ? `<meta name="product-image" content="${image}">` : ''}
-                    ${description ? `<meta name="description" content="${description}">` : ''}
-                    <meta name="extracted-title" content="${title}">
+                    <meta name="extracted-title" content="${title || ''}">
                 </head>
                 <body>${content}</body>
             </html>
@@ -302,56 +366,6 @@ const fetchWithFallback = async(url) => {
         throw error;
     }
 };
-
-// Site-specific configurations
-function getSiteConfig(hostname) {
-    const defaultConfig = {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        headers: {},
-        cookies: [],
-        waitUntil: ['domcontentloaded', 'networkidle2'],
-        timeout: 20000,
-        titleSelectors: [],
-        imageSelectors: [],
-        descriptionSelectors: [],
-        waitForSelectors: [],
-        isBlocked: () => false,
-        allowedResources: (resourceType) => ['document', 'image'].includes(resourceType)
-    };
-
-    const configs = {
-        'myntra.com': {
-            headers: {
-                'sec-fetch-site': 'same-origin',
-                'sec-fetch-mode': 'navigate',
-                'sec-fetch-dest': 'document',
-                'sec-fetch-user': '?1'
-            },
-            waitForSelectors: ['.pdp-title', '.image-grid-container', '.pdp-price'],
-            titleSelectors: ['.pdp-title', '.pdp-name'],
-            imageSelectors: ['.image-grid-image', '.image-grid-imageContainer img'],
-            descriptionSelectors: ['.pdp-product-description'],
-            allowedResources: (resourceType, url) => {
-                return ['document', 'xhr', 'fetch'].includes(resourceType) ||
-                       url.includes('assets.myntassets.com');
-            }
-        },
-        'amazon': {
-            // ... existing Amazon config ...
-        }
-        // Add more site-specific configs as needed
-    };
-
-    // Match domain patterns (e.g., amazon.com, amazon.in, etc.)
-    const matchedConfig = Object.entries(configs).find(([domain]) => 
-        hostname.includes(domain)
-    );
-
-    return {
-        ...defaultConfig,
-        ...(matchedConfig ? matchedConfig[1] : {})
-    };
-}
 
 // Cleanup function for graceful shutdo wn
 process.on('SIGINT', async () => {
