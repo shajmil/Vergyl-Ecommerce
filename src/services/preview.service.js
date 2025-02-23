@@ -135,40 +135,79 @@ const fetchWithFallback = async(url) => {
         const browser = await getBrowser();
         const page = await browser.newPage();
         
-        // Set a more realistic user agent
+        // Enhanced browser fingerprint
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        // Optimize headers
+        // Set cookies for Amazon domains
+        if (url.includes('amazon')) {
+            await page.setCookie({
+                name: 'session-id',
+                value: '123-1234567-1234567',
+                domain: `.${new URL(url).hostname}`,
+                expires: Date.now() + 86400000
+            });
+        }
+
         await page.setExtraHTTPHeaders({
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Connection': 'keep-alive'
         });
 
         // Optimize request interception
         await page.setRequestInterception(true);
         page.on('request', (request) => {
-            if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
-                request.abort();
-            } else {
+            const resourceType = request.resourceType();
+            const url = request.url();
+            
+            // Allow essential resources for Amazon
+            if (url.includes('amazon')) {
+                if (['document', 'xhr', 'fetch'].includes(resourceType)) {
+                    request.continue();
+                } else {
+                    request.abort();
+                }
+            } else if (['document', 'image'].includes(resourceType)) {
                 request.continue();
+            } else {
+                request.abort();
             }
         });
 
-        // Basic settings for faster loading
+        // Enhanced browser settings
         await Promise.all([
-            page.setViewport({ width: 1280, height: 720 }),
-            page.setDefaultNavigationTimeout(10000),
-            page.setJavaScriptEnabled(true)
+            page.setViewport({ width: 1920, height: 1080 }),
+            page.setDefaultNavigationTimeout(15000),
+            page.setJavaScriptEnabled(true),
+            page.evaluateOnNewDocument(() => {
+                // Mask automation fingerprints
+                Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                window.chrome = { runtime: {} };
+            })
         ]);
 
         const response = await page.goto(url, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 10000 
+            waitUntil: 'networkidle2',
+            timeout: 15000 
         });
 
         if (!response.ok()) {
             throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
+        }
+
+        // Wait for key elements on Amazon
+        if (url.includes('amazon')) {
+            await page.waitForFunction(() => {
+                return document.querySelector('#productTitle') !== null || 
+                       document.querySelector('.product-title-word-break') !== null ||
+                       document.querySelector('h1') !== null;
+            }, { timeout: 5000 }).catch(() => {});
         }
 
         const { content, image, title } = await page.evaluate(() => {
@@ -269,6 +308,12 @@ const fetchWithFallback = async(url) => {
         });
 
         await page.close();
+
+        // Validate extracted content
+        if (title === 'Amazon.in' || title === 'Amazon.ae' || 
+            title.includes('robot') || title.includes('Captcha')) {
+            throw new Error('Captcha detected');
+        }
 
         const enhancedContent = `
             <html>
