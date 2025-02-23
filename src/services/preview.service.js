@@ -138,89 +138,42 @@ const fetchWithFallback = async(url) => {
         // Set a more realistic user agent
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        // Add additional headers to appear more legitimate
+        // Optimize headers
         await page.setExtraHTTPHeaders({
             'Accept-Language': 'en-US,en;q=0.9',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Connection': 'keep-alive'
         });
 
-        // Modify request interception to allow more resources
+        // Optimize request interception
         await page.setRequestInterception(true);
         page.on('request', (request) => {
-            const resourceType = request.resourceType();
-            if (['document', 'image', 'stylesheet'].includes(resourceType)) {
-                request.continue();
-            } else {
+            if (['image', 'stylesheet', 'font', 'script'].includes(request.resourceType())) {
                 request.abort();
+            } else {
+                request.continue();
             }
         });
 
+        // Basic settings for faster loading
         await Promise.all([
-            page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 }),
-            page.setDefaultNavigationTimeout(15000),
-            page.setCacheEnabled(true),
-            page.setJavaScriptEnabled(true), // Enable JavaScript for Amazon
-            page.setBypassCSP(true)
+            page.setViewport({ width: 1280, height: 720 }),
+            page.setDefaultNavigationTimeout(10000),
+            page.setJavaScriptEnabled(true)
         ]);
 
-        // Use delay function that works with Puppeteer
-        await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1000) + 500));
-
         const response = await page.goto(url, { 
-            waitUntil: 'networkidle0', // Wait for network to be idle
-            timeout: 15000 
+            waitUntil: 'domcontentloaded',
+            timeout: 10000 
         });
 
-        // Handle Amazon-specific logic
-        if (url.includes('amazon')) {
-            // Wait for product title to load
-            await page.waitForSelector('#productTitle, .product-title-word-break', { timeout: 5000 }).catch(() => {});
-            
-            // Use standard setTimeout instead of waitForTimeout
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!response.ok()) {
+            throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
         }
 
         const { content, image, title } = await page.evaluate(() => {
             const findProductTitle = () => {
-                // Amazon-specific selectors first
-                if (window.location.hostname.includes('amazon')) {
-                    const amazonSelectors = [
-                        '#productTitle',
-                        '.product-title-word-break',
-                        '#title',
-                        '.a-size-large.product-title-word-break'
-                    ];
-                    
-                    for (const selector of amazonSelectors) {
-                        const element = document.querySelector(selector);
-                        if (element) {
-                            const text = element.textContent.trim();
-                            if (text) return text;
-                        }
-                    }
-                }
-
-                // Try structured data first (JSON-LD)
-                const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
-                for (const script of jsonLdScripts) {
-                    try {
-                        const data = JSON.parse(script.textContent);
-                        // Handle different JSON-LD structures
-                        if (data['@type'] === 'Product' && data.name) return data.name;
-                        if (data['@graph']) {
-                            const product = data['@graph'].find(item => 
-                                item['@type'] === 'Product' || 
-                                item['@type'] === 'IndividualProduct'
-                            );
-                            if (product?.name) return product.name;
-                        }
-                    } catch (e) {}
-                }
-
-                // Try meta tags
+                // Try meta tags first (faster)
                 const metaTitleSelectors = [
                     'meta[property="og:title"]',
                     'meta[name="twitter:title"]',
@@ -238,29 +191,14 @@ const fetchWithFallback = async(url) => {
 
                 // Try common product title elements
                 const titleSelectors = [
-                    // Shopify specific
+                    '#productTitle',
+                    '.product-title-word-break',
                     '.product__title',
                     '.product-single__title',
-                    '[data-product-title]',
-                    
-                    // Common e-commerce patterns
                     '[class*="product"][class*="title"]',
                     '[class*="product"][class*="name"]',
-                    '[id*="product"][id*="title"]',
-                    '[id*="product"][id*="name"]',
-                    '.product-title',
-                    '.product-name',
-                    '#product-title',
-                    '#product-name',
-                    
-                    // Generic but likely product titles
                     'h1.title',
-                    'h1.name',
-                    'h1:first-of-type',
-                    
-                    // Breadcrumb last item
-                    '.breadcrumb li:last-child',
-                    '[class*="breadcrumb"] span:last-child'
+                    'h1:first-of-type'
                 ];
 
                 for (const selector of titleSelectors) {
@@ -268,102 +206,52 @@ const fetchWithFallback = async(url) => {
                     if (element) {
                         const text = element.textContent.trim();
                         if (text && text.length > 3) {
-                            // Clean up the title
-                            return text
-                                .replace(/\s+/g, ' ')          // Remove extra spaces
-                                .replace(/^\W+|\W+$/g, '')     // Remove leading/trailing special chars
-                                .replace(/\| .*$/, '')         // Remove everything after |
-                                .replace(/- .*$/, '')          // Remove everything after -
-                                .trim();
+                            return text.replace(/\s+/g, ' ').trim();
                         }
                     }
                 }
 
-                // Last resort: try to find the most prominent text
-                const h1s = Array.from(document.getElementsByTagName('h1'));
-                for (const h1 of h1s) {
-                    if (h1.offsetHeight > 0 && h1.offsetWidth > 0) {
-                        const text = h1.textContent.trim();
-                        if (text && text.length > 3) return text;
-                    }
-                }
-
-                // If still no title, try the page title
-                const pageTitle = document.title;
-                if (pageTitle) {
-                    return pageTitle
-                        .split(/[|\-–—]/)      // Split on common separators
-                        .map(part => part.trim())
-                        .filter(part => part.length > 3)
-                        .shift() || pageTitle;
-                }
-
-                return '';
+                return document.title.split(/[|\-–—]/)[0].trim();
             };
 
             const findBestImage = () => {
-                // Amazon-specific image selectors first
-                if (window.location.hostname.includes('amazon')) {
-                    const amazonImageSelectors = [
-                        '#landingImage',
-                        '#imgBlkFront',
-                        '#main-image',
-                        '#prodImage'
-                    ];
-                    
-                    for (const selector of amazonImageSelectors) {
-                        const element = document.querySelector(selector);
-                        if (element) {
-                            return element.src || element.getAttribute('data-old-hires') || element.getAttribute('data-a-dynamic-image');
-                        }
-                    }
-                }
-
-                const imageSelectors = [
-                    // High-res and zoom images
-                    'img[data-zoom-image]',
-                    'img[data-large-image]',
-                    'img[data-old-hires]',
-                    '[data-zoom-image]',
-                    
-                    // Meta images
+                // Try meta images first (faster)
+                const metaImageSelectors = [
                     'meta[property="og:image"]',
                     'meta[name="twitter:image"]',
-                    'meta[property="product:image"]',
-                    
-                    // Common product image patterns
+                    'meta[property="product:image"]'
+                ];
+
+                for (const selector of metaImageSelectors) {
+                    const meta = document.querySelector(selector);
+                    if (meta?.content) return meta.content;
+                }
+
+                // Try product images
+                const imageSelectors = [
+                    '#landingImage',
+                    '#imgBlkFront',
                     '.product__image img',
                     '.product-single__image img',
                     '.product-featured-img',
-                    '#ProductPhotoImg',
-                    '.product-image img',
-                    '#product-image img',
-                    '.gallery-image img',
-                    '[data-main-image]',
-                    '[id*="product"][id*="image"]',
-                    '[class*="product"][class*="image"]'
+                    '[data-zoom-image]'
                 ];
 
                 for (const selector of imageSelectors) {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        const src = element.getAttribute('data-zoom-image') ||
-                                  element.getAttribute('data-large-image') ||
-                                  element.getAttribute('data-old-hires') ||
-                                  element.getAttribute('content') ||
-                                  element.src;
-                        if (src && !src.includes('logo') && !src.includes('icon')) {
-                            return src;
-                        }
+                    const img = document.querySelector(selector);
+                    if (img) {
+                        return img.src || img.getAttribute('data-zoom-image') || 
+                               img.getAttribute('data-large-image') || 
+                               img.getAttribute('data-old-hires');
                     }
                 }
 
-                // Find largest image as fallback
+                // Fallback to largest visible image
                 let bestImage = null;
                 let maxArea = 0;
                 document.querySelectorAll('img').forEach(img => {
-                    if (img.width > 200 && img.height > 200) {
-                        const area = img.width * img.height;
+                    if (img.offsetWidth > 200 && img.offsetHeight > 200) {
+                        const area = img.offsetWidth * img.offsetHeight;
                         if (area > maxArea && !img.src.includes('logo')) {
                             maxArea = area;
                             bestImage = img.src;
@@ -385,7 +273,7 @@ const fetchWithFallback = async(url) => {
         const enhancedContent = `
             <html>
                 <head>
-                    <title>${title || content.match(/<title>(.*?)<\/title>/)?.[1] || ''}</title>
+                    <title>${title || ''}</title>
                     ${image ? `<meta name="product-image" content="${image}">` : ''}
                     <meta name="extracted-title" content="${title || ''}">
                 </head>
