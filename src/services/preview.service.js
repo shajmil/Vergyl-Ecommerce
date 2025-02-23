@@ -134,40 +134,78 @@ const fetchWithFallback = async(url) => {
     try {
         const browser = await getBrowser();
         const page = await browser.newPage();
+
+        // Randomize viewport slightly
+        const width = 1920 + Math.floor(Math.random() * 100);
+        const height = 1080 + Math.floor(Math.random() * 100);
         
-        // Enhanced browser fingerprint
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await Promise.all([
+            page.setViewport({ width, height, deviceScaleFactor: 1 }),
+            page.setDefaultNavigationTimeout(20000),
+            page.setJavaScriptEnabled(true),
+            // Enhanced anti-bot evasion
+            page.evaluateOnNewDocument(() => {
+                window.navigator.chrome = {
+                    runtime: {},
+                    loadTimes: function() {},
+                    csi: function() {},
+                    app: {}
+                };
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'plugins', { get: () => [
+                    { name: 'Chrome PDF Plugin' },
+                    { name: 'Chrome PDF Viewer' },
+                    { name: 'Native Client' }
+                ]});
+            })
+        ]);
+
+        // Rotate user agents
+        const userAgents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        ];
+        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
         
-        // Set cookies for Amazon domains
+        await page.setUserAgent(randomUserAgent);
+        
+        // Set cookies and localStorage for Amazon
         if (url.includes('amazon')) {
-            await page.setCookie({
-                name: 'session-id',
-                value: '123-1234567-1234567',
-                domain: `.${new URL(url).hostname}`,
-                expires: Date.now() + 86400000
-            });
+            const domain = new URL(url).hostname;
+            await page.setCookie(
+                {
+                    name: 'session-id',
+                    value: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                    domain: `.${domain}`,
+                    expires: Date.now() + 86400000
+                },
+                {
+                    name: 'i18n-prefs',
+                    value: 'USD',
+                    domain: `.${domain}`
+                }
+            );
         }
 
         await page.setExtraHTTPHeaders({
             'Accept-Language': 'en-US,en;q=0.9',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-            'sec-ch-ua-mobile': '?0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'sec-ch-ua': `"Not_A Brand";v="8", "Chromium";v="120"`,
             'sec-ch-ua-platform': '"Windows"',
             'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Connection': 'keep-alive'
+            'Cache-Control': 'max-age=0'
         });
 
-        // Optimize request interception
+        // Optimize request handling
         await page.setRequestInterception(true);
         page.on('request', (request) => {
             const resourceType = request.resourceType();
-            const url = request.url();
+            const url = request.url().toLowerCase();
             
-            // Allow essential resources for Amazon
             if (url.includes('amazon')) {
-                if (['document', 'xhr', 'fetch'].includes(resourceType)) {
+                if (['document', 'xhr', 'fetch'].includes(resourceType) ||
+                    url.includes('product-image') || url.includes('images/I/')) {
                     request.continue();
                 } else {
                     request.abort();
@@ -179,37 +217,37 @@ const fetchWithFallback = async(url) => {
             }
         });
 
-        // Enhanced browser settings
-        await Promise.all([
-            page.setViewport({ width: 1920, height: 1080 }),
-            page.setDefaultNavigationTimeout(15000),
-            page.setJavaScriptEnabled(true),
-            page.evaluateOnNewDocument(() => {
-                // Mask automation fingerprints
-                Object.defineProperty(navigator, 'webdriver', { get: () => false });
-                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-                window.chrome = { runtime: {} };
-            })
-        ]);
-
-        const response = await page.goto(url, { 
-            waitUntil: 'networkidle2',
-            timeout: 15000 
+        // Enhanced page load strategy
+        const response = await page.goto(url, {
+            waitUntil: ['domcontentloaded', 'networkidle2'],
+            timeout: 20000
         });
 
-        if (!response.ok()) {
-            throw new Error(`Failed to load page: ${response.status()} ${response.statusText()}`);
-        }
-
-        // Wait for key elements on Amazon
+        // Handle Amazon specific logic
         if (url.includes('amazon')) {
-            await page.waitForFunction(() => {
-                return document.querySelector('#productTitle') !== null || 
-                       document.querySelector('.product-title-word-break') !== null ||
-                       document.querySelector('h1') !== null;
-            }, { timeout: 5000 }).catch(() => {});
+            // Wait for product container
+            await Promise.race([
+                page.waitForSelector('#dp-container'),
+                page.waitForSelector('#productTitle'),
+                page.waitForSelector('.product-title-word-break'),
+                new Promise(resolve => setTimeout(resolve, 5000))
+            ]);
+
+            // Check for CAPTCHA
+            const isCaptcha = await page.evaluate(() => {
+                return document.body.textContent.includes('not a robot') ||
+                       document.body.textContent.includes('Captcha') ||
+                       document.title === 'Amazon.in' ||
+                       document.title === 'Amazon.ae';
+            });
+
+            if (isCaptcha) {
+                await page.close();
+                throw new Error('Captcha detected, retrying with different configuration');
+            }
         }
 
+        // Rest of your existing evaluate code for content extraction...
         const { content, image, title } = await page.evaluate(() => {
             const findProductTitle = () => {
                 // Try meta tags first (faster)
@@ -309,12 +347,6 @@ const fetchWithFallback = async(url) => {
 
         await page.close();
 
-        // Validate extracted content
-        if (title === 'Amazon.in' || title === 'Amazon.ae' || 
-            title.includes('robot') || title.includes('Captcha')) {
-            throw new Error('Captcha detected');
-        }
-
         const enhancedContent = `
             <html>
                 <head>
@@ -328,7 +360,8 @@ const fetchWithFallback = async(url) => {
 
         previewCache.set(url, enhancedContent);
         return enhancedContent;
-    } catch (error) { 
+
+    } catch (error) {
         console.error('Preview generation failed:', error.message);
         throw error;
     }
