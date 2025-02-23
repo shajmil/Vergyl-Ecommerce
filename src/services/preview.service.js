@@ -236,62 +236,6 @@ const fetchWithFallback = async(url) => {
                 }
                 return null;
             };
-            
-            const findBestImage = () => {
-                const imageSelectors = [
-                    // High-res and zoom images
-                    'img[data-zoom-image]',
-                    'img[data-large-image]',
-                    'img[data-old-hires]',
-                    '[data-zoom-image]',
-                    
-                    // Meta images
-                    'meta[property="og:image"]',
-                    'meta[name="twitter:image"]',
-                    'meta[property="product:image"]',
-                    
-                    // Common product image patterns
-                    '.product__image img',
-                    '.product-single__image img',
-                    '.product-featured-img',
-                    '#ProductPhotoImg',
-                    '.product-image img',
-                    '#product-image img',
-                    '.gallery-image img',
-                    '[data-main-image]',
-                    '[id*="product"][id*="image"]',
-                    '[class*="product"][class*="image"]'
-                ];
-
-                for (const selector of imageSelectors) {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        const src = element.getAttribute('data-zoom-image') ||
-                                  element.getAttribute('data-large-image') ||
-                                  element.getAttribute('data-old-hires') ||
-                                  element.getAttribute('content') ||
-                                  element.src;
-                        if (src && !src.includes('logo') && !src.includes('icon')) {
-                            return src;
-                        }
-                    }
-                }
-
-                // Find largest image as fallback
-                let bestImage = null;
-                let maxArea = 0;
-                document.querySelectorAll('img').forEach(img => {
-                    if (img.width > 200 && img.height > 200) {
-                        const area = img.width * img.height;
-                        if (area > maxArea && !img.src.includes('logo')) {
-                            maxArea = area;
-                            bestImage = img.src;
-                        }
-                    }
-                });
-                return bestImage;
-            };
-
 
             // Site-specific + generic selectors
             const titleSelectors = [
@@ -326,7 +270,7 @@ const fetchWithFallback = async(url) => {
             return {
                 content: document.documentElement.innerHTML,
                 title: getMetaContent(titleSelectors) || document.title,
-                image: findBestImage() || getMetaContent(imageSelectors),
+                image: getMetaContent(imageSelectors),
                 description: getMetaContent(descriptionSelectors)
             };
         }, siteConfig);
