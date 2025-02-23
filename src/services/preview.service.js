@@ -120,8 +120,12 @@ async function getBrowser() {
                 '--disable-default-apps',
                 // Add additional arguments to appear more human-like
                 '--window-size=1920,1080',
-                '--start-maximized'
-            ]
+                '--start-maximized',
+                '--disable-blink-features=AutomationControlled',
+                '--enable-javascript',
+                '--user-agent-client-hints'
+            ],
+            defaultViewport: null
         });
     }
     return browserInstance;
@@ -135,217 +139,208 @@ const fetchWithFallback = async(url) => {
         const browser = await getBrowser();
         const page = await browser.newPage();
 
-        // Randomize viewport slightly
-        const width = 1920 + Math.floor(Math.random() * 100);
-        const height = 1080 + Math.floor(Math.random() * 100);
-        
-        await Promise.all([
-            page.setViewport({ width, height, deviceScaleFactor: 1 }),
-            page.setDefaultNavigationTimeout(20000),
-            page.setJavaScriptEnabled(true),
-            // Enhanced anti-bot evasion
-            page.evaluateOnNewDocument(() => {
-                window.navigator.chrome = {
-                    runtime: {},
-                    loadTimes: function() {},
-                    csi: function() {},
-                    app: {}
-                };
-                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-                Object.defineProperty(navigator, 'plugins', { get: () => [
-                    { name: 'Chrome PDF Plugin' },
-                    { name: 'Chrome PDF Viewer' },
-                    { name: 'Native Client' }
-                ]});
-            })
-        ]);
+        // Enhanced browser fingerprinting evasion
+        await page.evaluateOnNewDocument(() => {
+            // More sophisticated webdriver evasion
+            delete Object.getPrototypeOf(navigator).webdriver;
+            // Fake productSub
+            Object.defineProperty(navigator, 'productSub', {
+                get: () => '20030107'
+            });
+            // Add chrome runtime
+            window.chrome = {
+                runtime: {},
+                loadTimes: () => {},
+                csi: () => {},
+                app: {},
+                webstore: {}
+            };
+        });
 
-        // Rotate user agents
-        const userAgents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        ];
-        const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-        
-        await page.setUserAgent(randomUserAgent);
-        
-        // Set cookies and localStorage for Amazon
-        if (url.includes('amazon')) {
-            const domain = new URL(url).hostname;
-            await page.setCookie(
-                {
-                    name: 'session-id',
-                    value: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
-                    domain: `.${domain}`,
-                    expires: Date.now() + 86400000
-                },
-                {
-                    name: 'i18n-prefs',
-                    value: 'USD',
-                    domain: `.${domain}`
-                }
-            );
-        }
-
+        // Set common headers for all sites
         await page.setExtraHTTPHeaders({
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'sec-ch-ua': `"Not_A Brand";v="8", "Chromium";v="120"`,
             'sec-ch-ua-platform': '"Windows"',
             'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'max-age=0'
+            'Cache-Control': 'max-age=0',
+            'sec-fetch-site': 'none',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-dest': 'document'
         });
 
-        // Optimize request handling
+        // Site-specific configurations
+        const hostname = new URL(url).hostname;
+        if (hostname.includes('myntra.com')) {
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            // Add Myntra-specific cookies
+            await page.setCookie({
+                name: 'isWebinarInvited',
+                value: 'false',
+                domain: '.myntra.com'
+            });
+        }
+
+        // Enhanced request interception
         await page.setRequestInterception(true);
         page.on('request', (request) => {
             const resourceType = request.resourceType();
-            const url = request.url().toLowerCase();
+            const reqUrl = request.url().toLowerCase();
             
-            if (url.includes('amazon')) {
-                if (['document', 'xhr', 'fetch'].includes(resourceType) ||
-                    url.includes('product-image') || url.includes('images/I/')) {
-                    request.continue();
-                } else {
-                    request.abort();
-                }
-            } else if (['document', 'image'].includes(resourceType)) {
+            // Allow essential resources and images
+            if (['document', 'xhr', 'fetch'].includes(resourceType) ||
+                (resourceType === 'image' && !reqUrl.includes('tracking')) ||
+                reqUrl.includes('product-image') ||
+                reqUrl.includes('images/')) {
                 request.continue();
             } else {
                 request.abort();
             }
         });
 
-        // Enhanced page load strategy
-        const response = await page.goto(url, {
-            waitUntil: ['domcontentloaded', 'networkidle2'],
-            timeout: 20000
-        });
+        // Enhanced page load strategy with retry mechanism
+        let retryCount = 0;
+        const maxRetries = 2;
+        
+        while (retryCount <= maxRetries) {
+            try {
+                const response = await page.goto(url, {
+                    waitUntil: ['domcontentloaded', 'networkidle2'],
+                    timeout: 30000
+                });
 
-        // Handle Amazon specific logic
-        if (url.includes('amazon')) {
-            // Wait for product container
-            await Promise.race([
-                page.waitForSelector('#dp-container'),
-                page.waitForSelector('#productTitle'),
-                page.waitForSelector('.product-title-word-break'),
-                new Promise(resolve => setTimeout(resolve, 5000))
-            ]);
+                if (!response.ok()) {
+                    throw new Error(`HTTP ${response.status()}`);
+                }
 
-            // Check for CAPTCHA
-            const isCaptcha = await page.evaluate(() => {
-                return document.body.textContent.includes('not a robot') ||
-                       document.body.textContent.includes('Captcha') ||
-                       document.title === 'Amazon.in' ||
-                       document.title === 'Amazon.ae';
-            });
+                // Wait for content to be available
+                await page.waitForFunction(() => {
+                    return document.body && document.body.innerHTML.length > 0;
+                }, { timeout: 10000 });
 
-            if (isCaptcha) {
-                await page.close();
-                throw new Error('Captcha detected, retrying with different configuration');
+                break;
+            } catch (error) {
+                if (retryCount === maxRetries) throw error;
+                retryCount++;
+                await page.reload({ waitUntil: ['domcontentloaded', 'networkidle2'] });
             }
         }
 
-        // Rest of your existing evaluate code for content extraction...
+        // ... rest of your existing evaluate code for content extraction ...
+
+        // Enhanced error handling for the evaluation
         const { content, image, title } = await page.evaluate(() => {
-            const findProductTitle = () => {
-                // Try meta tags first (faster)
-                const metaTitleSelectors = [
-                    'meta[property="og:title"]',
-                    'meta[name="twitter:title"]',
-                    'meta[property="product:title"]',
-                    'meta[name="title"]'
-                ];
+            try {
+                const findProductTitle = () => {
+                    // Try meta tags first (faster)
+                    const metaTitleSelectors = [
+                        'meta[property="og:title"]',
+                        'meta[name="twitter:title"]',
+                        'meta[property="product:title"]',
+                        'meta[name="title"]'
+                    ];
 
-                for (const selector of metaTitleSelectors) {
-                    const meta = document.querySelector(selector);
-                    if (meta?.content) {
-                        const content = meta.content.trim();
-                        if (content) return content;
-                    }
-                }
-
-                // Try common product title elements
-                const titleSelectors = [
-                    '#productTitle',
-                    '.product-title-word-break',
-                    '.product__title',
-                    '.product-single__title',
-                    '[class*="product"][class*="title"]',
-                    '[class*="product"][class*="name"]',
-                    'h1.title',
-                    'h1:first-of-type'
-                ];
-
-                for (const selector of titleSelectors) {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        const text = element.textContent.trim();
-                        if (text && text.length > 3) {
-                            return text.replace(/\s+/g, ' ').trim();
+                    for (const selector of metaTitleSelectors) {
+                        const meta = document.querySelector(selector);
+                        if (meta?.content) {
+                            const content = meta.content.trim();
+                            if (content) return content;
                         }
                     }
-                }
 
-                return document.title.split(/[|\-–—]/)[0].trim();
-            };
+                    // Try common product title elements
+                    const titleSelectors = [
+                        '#productTitle',
+                        '.product-title-word-break',
+                        '.product__title',
+                        '.product-single__title',
+                        '[class*="product"][class*="title"]',
+                        '[class*="product"][class*="name"]',
+                        'h1.title',
+                        'h1:first-of-type'
+                    ];
 
-            const findBestImage = () => {
-                // Try meta images first (faster)
-                const metaImageSelectors = [
-                    'meta[property="og:image"]',
-                    'meta[name="twitter:image"]',
-                    'meta[property="product:image"]'
-                ];
-
-                for (const selector of metaImageSelectors) {
-                    const meta = document.querySelector(selector);
-                    if (meta?.content) return meta.content;
-                }
-
-                // Try product images
-                const imageSelectors = [
-                    '#landingImage',
-                    '#imgBlkFront',
-                    '.product__image img',
-                    '.product-single__image img',
-                    '.product-featured-img',
-                    '[data-zoom-image]'
-                ];
-
-                for (const selector of imageSelectors) {
-                    const img = document.querySelector(selector);
-                    if (img) {
-                        return img.src || img.getAttribute('data-zoom-image') || 
-                               img.getAttribute('data-large-image') || 
-                               img.getAttribute('data-old-hires');
-                    }
-                }
-
-                // Fallback to largest visible image
-                let bestImage = null;
-                let maxArea = 0;
-                document.querySelectorAll('img').forEach(img => {
-                    if (img.offsetWidth > 200 && img.offsetHeight > 200) {
-                        const area = img.offsetWidth * img.offsetHeight;
-                        if (area > maxArea && !img.src.includes('logo')) {
-                            maxArea = area;
-                            bestImage = img.src;
+                    for (const selector of titleSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            const text = element.textContent.trim();
+                            if (text && text.length > 3) {
+                                return text.replace(/\s+/g, ' ').trim();
+                            }
                         }
                     }
-                });
-                return bestImage;
-            };
 
-            return {
-                content: document.documentElement.innerHTML,
-                image: findBestImage(),
-                title: findProductTitle()
-            };
+                    return document.title.split(/[|\-–—]/)[0].trim();
+                };
+
+                const findBestImage = () => {
+                    // Try meta images first (faster)
+                    const metaImageSelectors = [
+                        'meta[property="og:image"]',
+                        'meta[name="twitter:image"]',
+                        'meta[property="product:image"]'
+                    ];
+
+                    for (const selector of metaImageSelectors) {
+                        const meta = document.querySelector(selector);
+                        if (meta?.content) return meta.content;
+                    }
+
+                    // Try product images
+                    const imageSelectors = [
+                        '#landingImage',
+                        '#imgBlkFront',
+                        '.product__image img',
+                        '.product-single__image img',
+                        '.product-featured-img',
+                        '[data-zoom-image]'
+                    ];
+
+                    for (const selector of imageSelectors) {
+                        const img = document.querySelector(selector);
+                        if (img) {
+                            return img.src || img.getAttribute('data-zoom-image') || 
+                                   img.getAttribute('data-large-image') || 
+                                   img.getAttribute('data-old-hires');
+                        }
+                    }
+
+                    // Fallback to largest visible image
+                    let bestImage = null;
+                    let maxArea = 0;
+                    document.querySelectorAll('img').forEach(img => {
+                        if (img.offsetWidth > 200 && img.offsetHeight > 200) {
+                            const area = img.offsetWidth * img.offsetHeight;
+                            if (area > maxArea && !img.src.includes('logo')) {
+                                maxArea = area;
+                                bestImage = img.src;
+                            }
+                        }
+                    });
+                    return bestImage;
+                };
+
+                return {
+                    content: document.documentElement.innerHTML,
+                    image: findBestImage(),
+                    title: findProductTitle()
+                };
+            } catch (err) {
+                return {
+                    content: document.documentElement.innerHTML,
+                    image: null,
+                    title: document.title
+                };
+            }
         });
 
         await page.close();
+
+        // Validate content before caching
+        if (!content || content.includes('Please contact your administrator')) {
+            throw new Error('Invalid content received');
+        }
 
         const enhancedContent = `
             <html>
@@ -362,7 +357,7 @@ const fetchWithFallback = async(url) => {
         return enhancedContent;
 
     } catch (error) {
-        console.error('Preview generation failed:', error.message);
+        console.error(`Preview generation failed for ${url}:`, error.message);
         throw error;
     }
 };
