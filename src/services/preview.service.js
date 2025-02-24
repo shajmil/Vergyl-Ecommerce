@@ -50,12 +50,31 @@ async function getBrowser() {
     return browserInstance;
 }
 
+// Enhanced console filtering
+const shouldIgnoreConsoleMessage = (text) => {
+    const ignoredPatterns = [
+        'net::ERR_FAILED',
+        'Failed to fetch',
+        'preloaded using link preload',
+        'Failed to load resource',
+        'Track&Report',
+        'WebGL',
+        'Metric emission failed',
+        'error on etracker',
+        'TypeError: Failed to fetch',
+        'Warning -- sushi response',
+        'MSAVowelsJavascriptAssets'
+    ];
+    return ignoredPatterns.some(pattern => text.toLowerCase().includes(pattern.toLowerCase()));
+};
+
 const fetchWithFallback = async(url) => {
     const cachedData = previewCache.get(url);
     if (cachedData) return cachedData;
 
     let lastError = null;
     const maxRetries = 3;
+    const isAmazon = url.toLowerCase().includes('amazon');
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         let page = null;
@@ -63,48 +82,56 @@ const fetchWithFallback = async(url) => {
             const browser = await getBrowser();
             page = await browser.newPage();
             
-            // Filter console messages
+            // Enhanced console filtering
             page.on('console', msg => {
                 const text = msg.text();
-                if (text.includes('net::ERR_FAILED') || 
-                    text.includes('preloaded using link preload') ||
-                    text.includes('Failed to load resource')) {
-                    return;
+                if (!shouldIgnoreConsoleMessage(text)) {
+                    console.log('Browser console:', text);
                 }
-                console.log('Browser console:', text);
             });
 
-            const navigationTimeout = attempt === 1 ? 30000 : 45000;
+            // Adjust timeouts based on site and attempt
+            const navigationTimeout = isAmazon ? 60000 : (attempt === 1 ? 30000 : 45000);
             await page.setDefaultNavigationTimeout(navigationTimeout);
 
-            // Basic setup for all sites
+            // Enhanced page settings
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await page.setExtraHTTPHeaders({
                 'Accept-Language': 'en-US,en;q=0.9',
                 'sec-fetch-site': 'none',
                 'sec-fetch-mode': 'navigate',
                 'sec-fetch-user': '?1',
-                'sec-fetch-dest': 'document'
+                'sec-fetch-dest': 'document',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
             });
 
-            // Setup request interception
+            // Block unnecessary resources
             await page.setRequestInterception(true);
             page.on('request', (request) => {
                 const resourceType = request.resourceType();
                 const url = request.url().toLowerCase();
                 
+                // Enhanced resource blocking
                 if (['media', 'font', 'websocket', 'manifest', 'other'].includes(resourceType) ||
                     url.includes('analytics') || 
                     url.includes('tracking') || 
                     url.includes('metrics') ||
-                    url.includes('advertisement')) {
+                    url.includes('advertisement') ||
+                    url.includes('sponsored') ||
+                    url.includes('unagi') ||
+                    url.includes('sushi') ||
+                    url.includes('track') ||
+                    url.includes('report') ||
+                    url.includes('etracker')) {
                     request.abort();
                     return;
                 }
                 
+                // Allow essential resources
                 if (resourceType === 'document' ||
-                    resourceType === 'image' ||
-                    resourceType === 'script') {
+                    (resourceType === 'image' && !url.includes('sprite') && !url.includes('icon')) ||
+                    (resourceType === 'script' && (url.includes('jquery') || url.includes('main')))) {
                     request.continue();
                     return;
                 }
@@ -112,9 +139,21 @@ const fetchWithFallback = async(url) => {
                 request.abort();
             });
 
-            // Navigate to page
+            // Disable JavaScript for Amazon pages after initial load
+            if (isAmazon) {
+                await page.evaluateOnNewDocument(() => {
+                    // Disable tracking and error reporting
+                    window.ue_csm = { ue: {} };
+                    window.ue = { log: () => {}, count: () => {}, tag: () => {} };
+                    window.uet = () => {};
+                    window.uex = () => {};
+                    window.ueLogError = () => {};
+                });
+            }
+
+            // Navigate with more lenient conditions
             const response = await page.goto(url, {
-                waitUntil: ['domcontentloaded', 'networkidle0'],
+                waitUntil: ['domcontentloaded'],
                 timeout: navigationTimeout
             });
 
@@ -123,8 +162,11 @@ const fetchWithFallback = async(url) => {
                 throw new Error(`Invalid response: ${response?.status() || 'no response'}`);
             }
 
-            // Wait for content to load
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait for content with timeout
+            await Promise.race([
+                new Promise(resolve => setTimeout(resolve, 2000)),
+                page.waitForSelector('body', { timeout: 5000 })
+            ]);
 
             // Extract content using generic selectors
             const { content, image, title, description } = await page.evaluate(() => {
@@ -145,67 +187,60 @@ const fetchWithFallback = async(url) => {
                     return null;
                 };
 
-            
+                const findBestImage = () => {
+                    const imageSelectors = [
+                        // High-res and zoom images
+                        'img[data-zoom-image]',
+                        'img[data-large-image]',
+                        'img[data-old-hires]',
+                        '[data-zoom-image]',
+                        
+                        // Meta images
+                        'meta[property="og:image"]',
+                        'meta[name="twitter:image"]',
+                        'meta[property="product:image"]',
+                        
+                        // Common product image patterns
+                        '.product__image img',
+                        '.product-single__image img',
+                        '.product-featured-img',
+                        '#ProductPhotoImg',
+                        '.product-image img',
+                        '#product-image img',
+                        '.gallery-image img',
+                        '[data-main-image]',
+                        '[id*="product"][id*="image"]',
+                        '[class*="product"][class*="image"]'
+                    ];
 
- const findBestImage = () => {
-    const imageSelectors = [
-        // High-res and zoom images
-        'img[data-zoom-image]',
-        'img[data-large-image]',
-        'img[data-old-hires]',
-        '[data-zoom-image]',
-        
-        // Meta images
-        'meta[property="og:image"]',
-        'meta[name="twitter:image"]',
-        'meta[property="product:image"]',
-        
-        // Common product image patterns
-        '.product__image img',
-        '.product-single__image img',
-        '.product-featured-img',
-        '#ProductPhotoImg',
-        '.product-image img',
-        '#product-image img',
-        '.gallery-image img',
-        '[data-main-image]',
-        '[id*="product"][id*="image"]',
-        '[class*="product"][class*="image"]'
-    ];
+                    for (const selector of imageSelectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            const src = element.getAttribute('data-zoom-image') ||
+                                      element.getAttribute('data-large-image') ||
+                                      element.getAttribute('data-old-hires') ||
+                                      element.getAttribute('content') ||
+                                      element.src;
+                            if (src && !src.includes('logo') && !src.includes('icon')) {
+                                return src;
+                            }
+                        }
+                    }
 
-    for (const selector of imageSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-            const src = element.getAttribute('data-zoom-image') ||
-                      element.getAttribute('data-large-image') ||
-                      element.getAttribute('data-old-hires') ||
-                      element.getAttribute('content') ||
-                      element.src;
-            if (src && !src.includes('logo') && !src.includes('icon')) {
-                return src;
-            }
-        }
-    }
-
-    // Find largest image as fallback
-    let bestImage = null;
-    let maxArea = 0;
-    document.querySelectorAll('img').forEach(img => {
-        if (img.width > 200 && img.height > 200) {
-            const area = img.width * img.height;
-            if (area > maxArea && !img.src.includes('logo')) {
-                maxArea = area;
-                bestImage = img.src;
-            }
-        }
-    });
-    return bestImage;
-};
-
-
-
-
-
+                    // Find largest image as fallback
+                    let bestImage = null;
+                    let maxArea = 0;
+                    document.querySelectorAll('img').forEach(img => {
+                        if (img.width > 200 && img.height > 200) {
+                            const area = img.width * img.height;
+                            if (area > maxArea && !img.src.includes('logo')) {
+                                maxArea = area;
+                                bestImage = img.src;
+                            }
+                        }
+                    });
+                    return bestImage;
+                };
 
                 // Generic selectors that work across most e-commerce sites
                 const titleSelectors = [
@@ -256,7 +291,7 @@ const fetchWithFallback = async(url) => {
             `;
 
             previewCache.set(url, enhancedContent);
-            await page.close();
+            if (page) await page.close();
             return enhancedContent;
 
         } catch (error) {
@@ -265,7 +300,8 @@ const fetchWithFallback = async(url) => {
             lastError = error;
             
             if (attempt < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+                // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
                 continue;
             }
             throw new Error(`Failed after ${maxRetries} attempts: ${lastError.message}`);
