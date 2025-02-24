@@ -83,6 +83,102 @@ const fetchWithFallback = async(url) => {
             const browser = await getBrowser();
             page = await browser.newPage();
             
+            // Enhanced Myntra-specific configurations
+            if (isMyntra) {
+                // More sophisticated browser fingerprinting
+                await page.evaluateOnNewDocument(() => {
+                    // Override navigator properties
+                    const newProto = navigator.__proto__;
+                    delete newProto.webdriver;
+                    navigator.__proto__ = newProto;
+                    
+                    // Add language preferences
+                    Object.defineProperty(navigator, 'languages', {
+                        get: () => ['en-US', 'en', 'hi'],
+                    });
+                    
+                    // Add more realistic plugins
+                    Object.defineProperty(navigator, 'plugins', {
+                        get: () => [
+                            { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer' },
+                            { name: 'Chrome PDF Viewer', filename: 'chrome-pdf-viewer' },
+                            { name: 'Native Client', filename: 'native-client' }
+                        ],
+                    });
+
+                    // Add window properties
+                    window.chrome = {
+                        app: {
+                            isInstalled: false,
+                            InstallState: {
+                                DISABLED: 'disabled',
+                                INSTALLED: 'installed',
+                                NOT_INSTALLED: 'not_installed'
+                            },
+                            RunningState: {
+                                CANNOT_RUN: 'cannot_run',
+                                READY_TO_RUN: 'ready_to_run',
+                                RUNNING: 'running'
+                            }
+                        },
+                        runtime: {
+                            PlatformOs: {
+                                MAC: 'mac',
+                                WIN: 'win',
+                                ANDROID: 'android',
+                                CROS: 'cros',
+                                LINUX: 'linux',
+                                OPENBSD: 'openbsd'
+                            },
+                            PlatformArch: {
+                                ARM: 'arm',
+                                X86_32: 'x86-32',
+                                X86_64: 'x86-64'
+                            },
+                            RequestUpdateCheckStatus: {
+                                THROTTLED: 'throttled',
+                                NO_UPDATE: 'no_update',
+                                UPDATE_AVAILABLE: 'update_available'
+                            },
+                            OnInstalledReason: {
+                                INSTALL: 'install',
+                                UPDATE: 'update',
+                                CHROME_UPDATE: 'chrome_update',
+                                SHARED_MODULE_UPDATE: 'shared_module_update'
+                            },
+                            OnRestartRequiredReason: {
+                                APP_UPDATE: 'app_update',
+                                OS_UPDATE: 'os_update',
+                                PERIODIC: 'periodic'
+                            }
+                        }
+                    };
+                });
+
+                // Enhanced headers for Myntra
+                await page.setExtraHTTPHeaders({
+                    'Accept-Language': 'en-US,en;q=0.9,hi;q=0.8',
+                    'sec-ch-ua': '"Google Chrome";v="120", "Chromium";v="120", "Not=A?Brand";v="24"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"',
+                    'Upgrade-Insecure-Requests': '1',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Sec-Fetch-Site': 'none',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-User': '?1',
+                    'Sec-Fetch-Dest': 'document',
+                    'Accept-Encoding': 'gzip, deflate, br'
+                });
+
+                // Set cookies for Myntra
+                await page.setCookie({
+                    name: 'AKA_A2', 
+                    value: '1',
+                    domain: '.myntra.com'
+                });
+            }
+
             // Enhanced console filtering
             page.on('console', msg => {
                 const text = msg.text();
@@ -92,22 +188,8 @@ const fetchWithFallback = async(url) => {
             });
 
             // Adjust timeouts based on site and attempt
-            const navigationTimeout = isAmazon || isMyntra ? 60000 : (attempt === 1 ? 30000 : 45000);
+            const navigationTimeout = isAmazon || isMyntra ? 90000 : (attempt === 1 ? 30000 : 45000);
             await page.setDefaultNavigationTimeout(navigationTimeout);
-
-            // Enhanced page settings with additional headers for Myntra
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-            await page.setExtraHTTPHeaders({
-                'Accept-Language': 'en-US,en;q=0.9',
-                'sec-fetch-site': 'none',
-                'sec-fetch-mode': 'navigate',
-                'sec-fetch-user': '?1',
-                'sec-fetch-dest': 'document',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Upgrade-Insecure-Requests': '1'
-            });
 
             // Block unnecessary resources
             await page.setRequestInterception(true);
@@ -177,10 +259,26 @@ const fetchWithFallback = async(url) => {
 
             // Enhanced wait strategy for Myntra
             if (isMyntra) {
-                await Promise.race([
-                    new Promise(resolve => setTimeout(resolve, 5000)),
-                    page.waitForSelector('.pdp-name, .pdp-title, img.img-responsive', { timeout: 10000 })
-                ]);
+                // Wait longer for initial render
+                await page.goto(url, {
+                    waitUntil: ['networkidle0', 'domcontentloaded'],
+                    timeout: navigationTimeout
+                });
+
+                // Wait for key elements with multiple attempts
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        await Promise.race([
+                            page.waitForSelector('.pdp-name, .pdp-title', { timeout: 10000 }),
+                            page.waitForSelector('.image-grid-imageContainer, .pdp-image', { timeout: 10000 }),
+                            new Promise(resolve => setTimeout(resolve, 8000))
+                        ]);
+                        break;
+                    } catch (e) {
+                        if (i === 2) throw e;
+                        await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] });
+                    }
+                }
             } else {
                 // Wait for content with timeout
                 await Promise.race([
@@ -326,13 +424,16 @@ const fetchWithFallback = async(url) => {
             return enhancedContent;
 
         } catch (error) {
-            console.error(`Attempt ${attempt} failed:`, error.message);
+            console.error(`Attempt ${attempt} failed for ${url}:`, error.message);
             if (page) await page.close();
             lastError = error;
             
             if (attempt < maxRetries) {
-                // Exponential backoff
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                // Increased backoff for Myntra
+                const backoffTime = isMyntra ? 
+                    Math.pow(2, attempt) * 2000 : 
+                    Math.pow(2, attempt) * 1000;
+                await new Promise(resolve => setTimeout(resolve, backoffTime));
                 continue;
             }
             throw new Error(`Failed after ${maxRetries} attempts: ${lastError.message}`);
