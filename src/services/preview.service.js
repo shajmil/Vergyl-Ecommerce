@@ -75,6 +75,7 @@ const fetchWithFallback = async(url) => {
     let lastError = null;
     const maxRetries = 3;
     const isAmazon = url.toLowerCase().includes('amazon');
+    const isMyntra = url.toLowerCase().includes('myntra');
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         let page = null;
@@ -91,10 +92,10 @@ const fetchWithFallback = async(url) => {
             });
 
             // Adjust timeouts based on site and attempt
-            const navigationTimeout = isAmazon ? 60000 : (attempt === 1 ? 30000 : 45000);
+            const navigationTimeout = isAmazon || isMyntra ? 60000 : (attempt === 1 ? 30000 : 45000);
             await page.setDefaultNavigationTimeout(navigationTimeout);
 
-            // Enhanced page settings
+            // Enhanced page settings with additional headers for Myntra
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await page.setExtraHTTPHeaders({
                 'Accept-Language': 'en-US,en;q=0.9',
@@ -103,7 +104,9 @@ const fetchWithFallback = async(url) => {
                 'sec-fetch-user': '?1',
                 'sec-fetch-dest': 'document',
                 'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+                'Pragma': 'no-cache',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Upgrade-Insecure-Requests': '1'
             });
 
             // Block unnecessary resources
@@ -151,6 +154,16 @@ const fetchWithFallback = async(url) => {
                 });
             }
 
+            // Special handling for Myntra
+            if (isMyntra) {
+                await page.evaluateOnNewDocument(() => {
+                    // Emulate regular browser behavior
+                    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                    window.chrome = { runtime: {} };
+                    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                });
+            }
+
             // Navigate with more lenient conditions
             const response = await page.goto(url, {
                 waitUntil: ['domcontentloaded'],
@@ -162,11 +175,19 @@ const fetchWithFallback = async(url) => {
                 throw new Error(`Invalid response: ${response?.status() || 'no response'}`);
             }
 
-            // Wait for content with timeout
-            await Promise.race([
-                new Promise(resolve => setTimeout(resolve, 2000)),
-                page.waitForSelector('body', { timeout: 5000 })
-            ]);
+            // Enhanced wait strategy for Myntra
+            if (isMyntra) {
+                await Promise.race([
+                    new Promise(resolve => setTimeout(resolve, 5000)),
+                    page.waitForSelector('.pdp-name, .pdp-title, img.img-responsive', { timeout: 10000 })
+                ]);
+            } else {
+                // Wait for content with timeout
+                await Promise.race([
+                    new Promise(resolve => setTimeout(resolve, 2000)),
+                    page.waitForSelector('body', { timeout: 5000 })
+                ]);
+            }
 
             // Extract content using generic selectors
             const { content, image, title, description } = await page.evaluate(() => {
@@ -189,6 +210,10 @@ const fetchWithFallback = async(url) => {
 
                 const findBestImage = () => {
                     const imageSelectors = [
+                        // Add Myntra-specific selectors
+                        '.image-grid-imageContainer img',
+                        '.pdp-image img',
+                        '.img-responsive',
                         // High-res and zoom images
                         'img[data-zoom-image]',
                         'img[data-large-image]',
@@ -252,7 +277,10 @@ const fetchWithFallback = async(url) => {
                     '[class*="product-name"]',
                     '[class*="productName"]',
                     '.pdp_title', // Common in many e-commerce sites
-                    '#productTitle' // Amazon-style
+                    '#productTitle', // Amazon-style
+                    // Add Myntra-specific selectors
+                    '.pdp-name',
+                    '.pdp-title',
                 ];
 
                 const descriptionSelectors = [
@@ -263,7 +291,10 @@ const fetchWithFallback = async(url) => {
                     '[class*="productDetails"]',
                     '#feature-bullets', // Amazon-style
                     '.pdp_description', // Common in many e-commerce sites
-                    '[data-testid*="description"]'
+                    '[data-testid*="description"]',
+                    // Add Myntra-specific selectors
+                    '.pdp-product-description',
+                    '.index-productDescriptors',
                 ];
 
                 return {
