@@ -148,6 +148,180 @@ const fetchWithFallback = async(url) => {
                     { name: 'mynt-loc-src', value: 'expiry', domain: '.myntra.com' }
                 ];
                 await page.setCookie(...cookies);
+
+                // Enhanced console filtering
+                page.on('console', msg => {
+                    const text = msg.text();
+                    if (!shouldIgnoreConsoleMessage(text)) {
+                        console.log('Browser console:', text);
+                    }
+                });
+
+                // Adjust timeouts based on site and attempt
+                const navigationTimeout = isAmazon || isMyntra ? 90000 : (attempt === 1 ? 30000 : 45000);
+                await page.setDefaultNavigationTimeout(navigationTimeout);
+
+                // Block unnecessary resources
+                await page.setRequestInterception(true);
+                page.on('request', (request) => {
+                    const resourceType = request.resourceType();
+                    const url = request.url().toLowerCase();
+                    
+                    // Enhanced resource blocking
+                    if (['media', 'font', 'websocket', 'manifest', 'other'].includes(resourceType) ||
+                        url.includes('analytics') || 
+                        url.includes('tracking') || 
+                        url.includes('metrics') ||
+                        url.includes('advertisement') ||
+                        url.includes('sponsored') ||
+                        url.includes('unagi') ||
+                        url.includes('sushi') ||
+                        url.includes('track') ||
+                        url.includes('report') ||
+                        url.includes('etracker')) {
+                        request.abort();
+                        return;
+                    }
+                    
+                    // Allow essential resources
+                    if (resourceType === 'document' ||
+                        (resourceType === 'image' && !url.includes('sprite') && !url.includes('icon')) ||
+                        (resourceType === 'script' && (url.includes('jquery') || url.includes('main')))) {
+                        request.continue();
+                        return;
+                    }
+                    
+                    request.abort();
+                });
+
+                // Disable JavaScript for Amazon pages after initial load
+                if (isAmazon) {
+                    await page.evaluateOnNewDocument(() => {
+                        // Disable tracking and error reporting
+                        window.ue_csm = { ue: {} };
+                        window.ue = { log: () => {}, count: () => {}, tag: () => {} };
+                        window.uet = () => {};
+                        window.uex = () => {};
+                        window.ueLogError = () => {};
+                    });
+                }
+
+                // Special handling for Myntra
+                if (isMyntra) {
+                    await page.evaluateOnNewDocument(() => {
+                        // Emulate regular browser behavior
+                        Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                        window.chrome = { runtime: {} };
+                        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                    });
+                }
+
+                // Try regular page load first
+                await page.goto(url, {
+                    waitUntil: ['domcontentloaded'],
+                    timeout: 30000
+                });
+
+                // Wait for key elements with multiple selectors
+                await Promise.race([
+                    page.waitForSelector('.pdp-name'),
+                    page.waitForSelector('.pdp-title'),
+                    page.waitForSelector('.image-grid-imageContainer'),
+                    page.waitForSelector('.pdp-image'),
+                    new Promise(resolve => setTimeout(resolve, 5000))
+                ]);
+
+                // Extract content using specific Myntra selectors
+                const productInfo = await page.evaluate(() => {
+                    const getTitle = () => {
+                        const titleElement = document.querySelector('.pdp-title') || 
+                                          document.querySelector('.pdp-name') ||
+                                          document.querySelector('h1.title');
+                        return titleElement ? titleElement.textContent.trim() : null;
+                    };
+
+                    const getDescription = () => {
+                        const descElement = document.querySelector('.pdp-product-description') ||
+                                          document.querySelector('.index-productDescriptors') ||
+                                          document.querySelector('.pdp-product-description-content');
+                        return descElement ? descElement.textContent.trim() : null;
+                    };
+
+                    const getImage = () => {
+                        // Try multiple image selectors
+                        const imageElement = document.querySelector('.image-grid-imageContainer img') ||
+                                           document.querySelector('.pdp-image img') ||
+                                           document.querySelector('.img-responsive');
+                        
+                        if (imageElement) {
+                            return imageElement.src || 
+                                   imageElement.getAttribute('data-src') || 
+                                   imageElement.getAttribute('srcset')?.split(',')[0];
+                        }
+                        return null;
+                    };
+
+                    const title = getTitle();
+                    const description = getDescription();
+                    const image = getImage();
+
+                    if (!title && !description && !image) {
+                        return null;
+                    }
+
+                    return {
+                        title: title || 'Product Title Not Available',
+                        description: description || 'No description available',
+                        image,
+                        content: document.documentElement.innerHTML
+                    };
+                });
+
+                if (productInfo) {
+                    previewCache.set(url, productInfo);
+                    if (page) await page.close();
+                    return productInfo;
+                }
+
+                // If page scraping fails, try the API as fallback
+                const productId = url.split('/').slice(-2)[0];
+                const apiUrl = `https://www.myntra.com/gateway/v2/product/${productId}`;
+                
+                const response = await page.goto(apiUrl, {
+                    waitUntil: 'networkidle0',
+                    timeout: 30000
+                });
+
+                const responseText = await response.text();
+                try {
+                    const data = JSON.parse(responseText);
+                    if (data && data.style) {
+                        const apiProductInfo = {
+                            title: data.style.name || data.style.brand,
+                            description: data.style.description,
+                            image: data.style.media.photos[0]?.secureSrc,
+                            content: `
+                                <html>
+                                    <head>
+                                        <title>${data.style.name}</title>
+                                        <meta name="description" content="${data.style.description}">
+                                    </head>
+                                    <body>
+                                        <h1>${data.style.name}</h1>
+                                        <img src="${data.style.media.photos[0]?.secureSrc}" alt="${data.style.name}">
+                                        <p>${data.style.description}</p>
+                                    </body>
+                                </html>
+                            `
+                        };
+                        previewCache.set(url, apiProductInfo);
+                        if (page) await page.close();
+                        return apiProductInfo;
+                    }
+                } catch (jsonError) {
+                    console.error('API response parsing failed:', jsonError.message);
+                    // Continue with fallback approach
+                }
             }
 
             // Enhanced console filtering
@@ -531,6 +705,19 @@ const fetchWithFallback = async(url) => {
                 await new Promise(resolve => setTimeout(resolve, backoffTime));
                 continue;
             }
+
+            // Return a fallback object for Myntra if all attempts fail
+            if (isMyntra) {
+                const fallbackInfo = {
+                    title: "Myntra Product",
+                    description: "Product information temporarily unavailable",
+                    image: null,
+                    content: "<html><body><p>Content temporarily unavailable</p></body></html>"
+                };
+                previewCache.set(url, fallbackInfo);
+                return fallbackInfo;
+            }
+
             throw new Error(`Failed after ${maxRetries} attempts: ${lastError.message}`);
         }
     }
