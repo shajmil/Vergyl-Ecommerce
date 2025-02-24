@@ -4,14 +4,15 @@ const { successResponse, errorResponse } = require('../helpers/response.helper')
 const create_product_request = async (req, res) => {
     try {
         const user_id = req.user.user_id;
-        const { product_name, description, requested_size, requested_color } = req.body;
+        const { product_name, description, requested_size, requested_color,image } = req.body;
 
         const result = await executeTransaction('create_product_request', [
             user_id,
             product_name,
             description,
             requested_size,
-            requested_color
+            requested_color,
+            image
         ]);
         console.log(result);
         return successResponse(res, 'Product request created successfully', result, 201);
