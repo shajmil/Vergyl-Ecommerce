@@ -167,31 +167,26 @@ const fetchWithFallback = async(url) => {
                     const resourceType = request.resourceType();
                     const url = request.url().toLowerCase();
                     
-                    // Enhanced resource blocking
-                    if (['media', 'font', 'websocket', 'manifest', 'other'].includes(resourceType) ||
-                        url.includes('analytics') || 
-                        url.includes('tracking') || 
-                        url.includes('metrics') ||
-                        url.includes('advertisement') ||
-                        url.includes('sponsored') ||
-                        url.includes('unagi') ||
-                        url.includes('sushi') ||
-                        url.includes('track') ||
-                        url.includes('report') ||
-                        url.includes('etracker')) {
+                    try {
+                        // Essential resources for Myntra
+                        if (resourceType === 'document' || 
+                            url.includes('gateway/v2/product') ||
+                            (resourceType === 'image' && 
+                             (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png')) &&
+                             !url.includes('sprite') && 
+                             !url.includes('icon'))) {
+                            request.continue();
+                            return;
+                        }
+                        
+                        // Block everything else
                         request.abort();
-                        return;
+                    } catch (e) {
+                        // If request is already handled, ignore the error
+                        if (!e.message.includes('Request is already handled')) {
+                            console.error('Request interception error:', e);
+                        }
                     }
-                    
-                    // Allow essential resources
-                    if (resourceType === 'document' ||
-                        (resourceType === 'image' && !url.includes('sprite') && !url.includes('icon')) ||
-                        (resourceType === 'script' && (url.includes('jquery') || url.includes('main')))) {
-                        request.continue();
-                        return;
-                    }
-                    
-                    request.abort();
                 });
 
                 // Disable JavaScript for Amazon pages after initial load
@@ -287,14 +282,17 @@ const fetchWithFallback = async(url) => {
                 const productId = url.split('/').slice(-2)[0];
                 const apiUrl = `https://www.myntra.com/gateway/v2/product/${productId}`;
                 
-                const response = await page.goto(apiUrl, {
-                    waitUntil: 'networkidle0',
-                    timeout: 30000
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Referer': url
+                    }
                 });
 
-                const responseText = await response.text();
-                try {
-                    const data = JSON.parse(responseText);
+                if (response.ok) {
+                    const data = await response.json();
                     if (data && data.style) {
                         const apiProductInfo = {
                             title: data.style.name || data.style.brand,
@@ -318,9 +316,6 @@ const fetchWithFallback = async(url) => {
                         if (page) await page.close();
                         return apiProductInfo;
                     }
-                } catch (jsonError) {
-                    console.error('API response parsing failed:', jsonError.message);
-                    // Continue with fallback approach
                 }
             }
 
@@ -708,14 +703,12 @@ const fetchWithFallback = async(url) => {
 
             // Return a fallback object for Myntra if all attempts fail
             if (isMyntra) {
-                const fallbackInfo = {
+                return {
                     title: "Myntra Product",
                     description: "Product information temporarily unavailable",
                     image: null,
                     content: "<html><body><p>Content temporarily unavailable</p></body></html>"
                 };
-                previewCache.set(url, fallbackInfo);
-                return fallbackInfo;
             }
 
             throw new Error(`Failed after ${maxRetries} attempts: ${lastError.message}`);
