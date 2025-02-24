@@ -16,27 +16,36 @@ const previewCache = new NodeCache({
 // Reusable browser instance
 let browserInstance = null;
 
+// Enhanced browser configuration
+const launchOptions = {
+    headless: true,
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins',
+        '--disable-extensions',
+        '--disable-audio-output',
+        '--disable-remote-fonts',
+        '--disable-background-networking',
+        '--disable-default-apps',
+        '--window-size=1920,1080',
+        '--start-maximized',
+        '--disable-blink-features=AutomationControlled',
+        '--enable-features=NetworkService',
+        '--no-first-run',
+        '--no-service-autorun',
+        '--password-store=basic'
+    ],
+    ignoreHTTPSErrors: true
+};
+
 async function getBrowser() {
     if (!browserInstance) {
-        browserInstance = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--single-process',
-                '--disable-web-security',
-                '--disable-features=IsolateOrigins',
-                '--disable-extensions',
-                '--disable-audio-output',
-                '--disable-remote-fonts',
-                '--disable-background-networking',
-                '--disable-default-apps',
-                '--window-size=1920,1080',
-                '--start-maximized'
-            ]
-        });
+        browserInstance = await puppeteer.launch(launchOptions);
     }
     return browserInstance;
 }
@@ -55,31 +64,34 @@ const fetchWithFallback = async(url) => {
             page.setDefaultNavigationTimeout(20000),
             page.setJavaScriptEnabled(true),
             page.evaluateOnNewDocument(() => {
-                // Advanced fingerprint evasion
-                const originalQuery = window.navigator.permissions.query;
-                window.navigator.permissions.query = (parameters) => (
-                    parameters.name === 'notifications' ?
-                        Promise.resolve({ state: Notification.permission }) :
-                        originalQuery(parameters)
-                );
-                
-                Object.defineProperties(navigator, {
-                    webdriver: { get: () => undefined },
-                    plugins: {
-                        get: () => [
-                            { name: 'Chrome PDF Plugin' },
-                            { name: 'Chrome PDF Viewer' },
-                            { name: 'Native Client' }
-                        ]
-                    }
+                // Enhanced fingerprint evasion
+                Object.defineProperty(navigator, 'webdriver', { get: () => false });
+                Object.defineProperty(navigator, 'plugins', { 
+                    get: () => [1, 2, 3, 4, 5].map(() => ({
+                        name: `Chrome PDF Plugin ${Math.random()}`,
+                        description: 'Portable Document Format',
+                        filename: 'internal-pdf-viewer'
+                    }))
                 });
-
-                window.navigator.chrome = {
-                    runtime: {},
-                    loadTimes: function() {},
-                    csi: function() {},
-                    app: {}
+                
+                // Add more sophisticated browser environment simulation
+                window.chrome = {
+                    app: { isInstalled: false },
+                    runtime: {
+                        connect: () => {},
+                        sendMessage: () => {},
+                        onMessage: { addListener: () => {} }
+                    },
+                    webstore: { onInstallStageChanged: {}, onDownloadProgress: {} },
+                    csi: () => {},
+                    loadTimes: () => {}
                 };
+
+                // Mask automation flags
+                delete window.__webdriver_evaluate;
+                delete window.__selenium_evaluate;
+                delete window.__webdriver_script_fn;
+                delete window.$cdc_asdjflasutopfhvcZLmcfl_;
             })
         ]);
 
@@ -144,15 +156,65 @@ const fetchWithFallback = async(url) => {
             const getMetaContent = (selectors) => {
                 for (const selector of selectors) {
                     const element = document.querySelector(selector);
-                    if (element?.content || element?.textContent) {
-                        return (element.content || element.textContent).trim();
+                    if (element) {
+                        const content = element.getAttribute('content') || 
+                                      element.getAttribute('value') || 
+                                      element.textContent;
+                        if (content) return content.trim();
                     }
                 }
                 return null;
             };
             
             const findBestImage = () => {
+                // Enhanced image selection logic
+                const getImageUrl = (element) => {
+                    if (!element) return null;
+                    return element.getAttribute('data-zoom-image') ||
+                           element.getAttribute('data-large-image') ||
+                           element.getAttribute('data-old-hires') ||
+                           element.getAttribute('data-a-dynamic-image') ||
+                           element.getAttribute('data-original') ||
+                           element.getAttribute('data-lazy') ||
+                           element.getAttribute('data-src') ||
+                           element.getAttribute('content') ||
+                           element.src;
+                };
+
+                const isValidImage = (url) => {
+                    if (!url) return false;
+                    return !url.includes('logo') && 
+                           !url.includes('icon') && 
+                           !url.includes('captcha') &&
+                           !url.includes('placeholder') &&
+                           (url.match(/\.(jpg|jpeg|png|webp)/i) || 
+                            url.includes('images-amazon') || 
+                            url.includes('myntra-assets'));
+                };
+
+                // Try structured data first
+                const jsonLd = document.querySelector('script[type="application/ld+json"]');
+                if (jsonLd) {
+                    try {
+                        const data = JSON.parse(jsonLd.textContent);
+                        const image = data.image || 
+                                    (data['@graph'] && data['@graph'].find(item => item.image)?.image);
+                        if (image && isValidImage(Array.isArray(image) ? image[0] : image)) {
+                            return Array.isArray(image) ? image[0] : image;
+                        }
+                    } catch (e) {}
+                }
+
                 const imageSelectors = [
+                    // Amazon specific
+                    '#landingImage',
+                    '#imgBlkFront',
+                    '#main-image',
+                    
+                    // Myntra specific
+                    '.image-grid-image',
+                    '.image-grid-imageContainer img',
+                    
                     // High-res and zoom images
                     'img[data-zoom-image]',
                     'img[data-large-image]',
@@ -180,29 +242,28 @@ const fetchWithFallback = async(url) => {
                 for (const selector of imageSelectors) {
                     const element = document.querySelector(selector);
                     if (element) {
-                        const src = element.getAttribute('data-zoom-image') ||
-                                  element.getAttribute('data-large-image') ||
-                                  element.getAttribute('data-old-hires') ||
-                                  element.getAttribute('content') ||
-                                  element.src;
-                        if (src && !src.includes('logo') && !src.includes('icon')) {
-                            return src;
+                        const url = getImageUrl(element);
+                        if (isValidImage(url)) {
+                            return url;
                         }
                     }
                 }
 
-                // Find largest image as fallback
+                // Enhanced fallback for largest image
                 let bestImage = null;
                 let maxArea = 0;
                 document.querySelectorAll('img').forEach(img => {
-                    if (img.width > 200 && img.height > 200) {
-                        const area = img.width * img.height;
-                        if (area > maxArea && !img.src.includes('logo')) {
+                    const url = getImageUrl(img);
+                    if (isValidImage(url)) {
+                        const area = img.naturalWidth * img.naturalHeight || 
+                                   img.width * img.height;
+                        if (area > maxArea && area > 40000) { // Minimum size threshold
                             maxArea = area;
-                            bestImage = img.src;
+                            bestImage = url;
                         }
                     }
                 });
+
                 return bestImage;
             };
 
@@ -259,6 +320,10 @@ const fetchWithFallback = async(url) => {
 
     } catch (error) {
         console.error('Preview generation failed:', error.message);
+        // Add retry logic with different user agent
+        if (error.message.includes('blocked') || error.message.includes('Failed to extract')) {
+            // Implement retry logic here
+        }
         throw error;
     }
 };
@@ -274,28 +339,73 @@ function getSiteConfig(hostname) {
         titleSelectors: [],
         descriptionSelectors: [],
         waitForSelectors: [],
-        isBlocked: () => false,
-        allowedResources: (resourceType) => ['document', 'image'].includes(resourceType)
+        isBlocked: () => {
+            // Enhanced bot detection check
+            return Boolean(
+                document.querySelector('#captcha-alert') ||
+                document.querySelector('.captcha-image') ||
+                document.querySelector('#robot-verification') ||
+                document.title.toLowerCase().includes('robot') ||
+                document.body.innerText.includes('captcha')
+            );
+        },
+        allowedResources: (resourceType) => ['document', 'image'].includes(resourceType),
+        rotateUserAgent: true,
+        maxRetries: 3,
+        userAgents: [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0'
+        ]
     };
 
     const configs = {
+        'amazon': {
+            headers: {
+                'Accept-Language': 'en-US,en;q=0.9',
+                'sec-fetch-site': 'none',
+                'sec-fetch-mode': 'navigate',
+                'sec-fetch-user': '?1',
+                'sec-fetch-dest': 'document',
+                'sec-ch-ua-mobile': '?0',
+                'Referer': 'https://www.google.com/'
+            },
+            cookies: [
+                { name: 'session-id', value: Date.now().toString(), domain: '.amazon.com' },
+                { name: 'i18n-prefs', value: 'USD', domain: '.amazon.com' }
+            ],
+            waitForSelectors: ['#productTitle', '#landingImage', '#feature-bullets'],
+            titleSelectors: ['#productTitle', '.product-title-word-break'],
+            descriptionSelectors: ['#feature-bullets', '#productDescription'],
+            waitUntil: ['domcontentloaded', 'networkidle0'],
+            timeout: 30000,
+            allowedResources: (resourceType, url) => {
+                return ['document', 'script', 'xhr', 'fetch', 'image'].includes(resourceType) ||
+                       url.includes('images-amazon.com') ||
+                       url.includes('media-amazon.com');
+            }
+        },
         'myntra.com': {
             headers: {
                 'sec-fetch-site': 'same-origin',
                 'sec-fetch-mode': 'navigate',
                 'sec-fetch-dest': 'document',
-                'sec-fetch-user': '?1'
+                'sec-fetch-user': '?1',
+                'Referer': 'https://www.myntra.com/'
             },
-            waitForSelectors: ['.pdp-title', '.image-grid-container', '.pdp-price'],
-            titleSelectors: ['.pdp-title', '.pdp-name'],
-            descriptionSelectors: ['.pdp-product-description'],
+            waitForSelectors: ['.pdp-title', '.image-grid-imageContainer'],
+            titleSelectors: ['.pdp-title', '.pdp-name', 'h1.title'],
+            descriptionSelectors: ['.pdp-product-description', '.index-productDescriptionContainer'],
             allowedResources: (resourceType, url) => {
-                return ['document', 'xhr', 'fetch'].includes(resourceType) ||
+                return ['document', 'xhr', 'fetch', 'script'].includes(resourceType) ||
                        url.includes('assets.myntassets.com');
+            },
+            isBlocked: () => {
+                return Boolean(
+                    document.querySelector('.error-page') ||
+                    document.querySelector('.captcha-container')
+                );
             }
-        },
-        'amazon': {
-            // ... existing Amazon config ...
         }
         // Add more site-specific configs as needed
     };
