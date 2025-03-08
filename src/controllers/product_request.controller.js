@@ -4,17 +4,18 @@ const { successResponse, errorResponse } = require('../helpers/response.helper')
 const create_product_request = async (req, res) => {
     try {
         const user_id = req.user.user_id;
-        const { product_name, description, requested_size, requested_color,image } = req.body;
+        const product_requests = req.body.product_requests; // Expecting an array of products
 
+        if (!Array.isArray(product_requests) || product_requests.length === 0) {
+            return errorResponse(res, 'Product requests must be an array with at least one item', 400);
+        }
+
+        // Call stored procedure with JSON data
         const result = await executeTransaction('create_product_request', [
             user_id,
-            product_name,
-            description,
-            requested_size,
-            requested_color,
-            image
+            JSON.stringify(product_requests) // Convert array to JSON string
         ]);
-        console.log(result);
+
         return successResponse(res, 'Product request created successfully', result, 201);
     } catch (error) {
         console.error('Create product request error:', error);
@@ -22,11 +23,18 @@ const create_product_request = async (req, res) => {
     }
 };
 
+
 const get_customer_product_requests = async (req, res) => {
     try {
         const user_id = req.user.user_id;
-        const { status } = req.query; // Get status from query params
-        const result = await getmultipleSP('get_customer_product_requests', [user_id, status || null]);
+        const { status, request_master_id } = req.query;
+
+        const result = await getmultipleSP('get_customer_product_requests', [
+            user_id, 
+            status || null, 
+            request_master_id || 0
+        ]);
+        console.log(result);
         return successResponse(res, 'Product requests retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get product requests error:', error);

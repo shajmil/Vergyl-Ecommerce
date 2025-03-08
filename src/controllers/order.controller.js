@@ -106,7 +106,7 @@ const create_order = async (req, res) => {
             order_items 
         } = req.body;
 
-        const result = await executeTransaction('create_order', [
+        const result = await getmultipleSP('create_order', [
             user_id,
             address_id,
             subtotal,
@@ -115,8 +115,19 @@ const create_order = async (req, res) => {
             total,
             JSON.stringify(order_items)
         ]);
+        console.log(result);
+        const orderId = result[0][0].order_id;
+        const blockedProducts = result[1]?.length > 0 ? result[1].map(p => p.blocked_products) : [];
 
-        return successResponse(res, 'Order created successfully', result, 201);
+        return res.status(201).json({
+            success: true,
+            message: blockedProducts.length > 0 ? "Order created with some blocked products" : "Order created successfully",
+            data: [{
+                order_id: orderId,
+                blocked_products: blockedProducts
+            }]
+        });
+    
     } catch (error) {
         console.error('Create order error:', error);
         return errorResponse(res, 'Failed to create order', 500);

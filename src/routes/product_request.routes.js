@@ -7,6 +7,6 @@ const {
 } = require('../controllers/product_request.controller');
 
 router.post('/', create_product_request);
-router.get('/', get_customer_product_requests);
+router.get('/get_customer_product_requests', get_customer_product_requests);
 
 module.exports = router;
