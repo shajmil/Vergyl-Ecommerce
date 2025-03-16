@@ -30,17 +30,21 @@ const get_all_orders = async (req, res) => {
 const get_admin_order_details = async (req, res) => {
     try {
         const order_id = req.params.id;
-        const result = await getmultipleSP('get_admin_order_details', [order_id]);
+        const result = await getmultipleSP('get_order_details', [order_id]);
         
         if (!result[0] || result[0].length === 0) {
             return errorResponse(res, 'Order not found', 404);
         }
 
+        // const orderDetails = {
+        //     ...result[0][0],
+        //     items: result[1],
+        //     customer: result[2][0],
+        //     address: result[3][0]
+        // };
         const orderDetails = {
             ...result[0][0],
-            items: result[1],
-            customer: result[2][0],
-            address: result[3][0]
+            items: result[1]
         };
 
         return successResponse(res, 'Order details retrieved successfully', orderDetails);
