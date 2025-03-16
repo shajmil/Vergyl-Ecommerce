@@ -4,6 +4,7 @@ const { successResponse, errorResponse } = require('../helpers/response.helper')
 const create_product_request = async (req, res) => {
     try {
         const user_id = req.user.user_id;
+        const address_id = req.body.address_id;
         const product_requests = req.body.product_requests; // Expecting an array of products
 
         if (!Array.isArray(product_requests) || product_requests.length === 0) {
@@ -13,6 +14,7 @@ const create_product_request = async (req, res) => {
         // Call stored procedure with JSON data
         const result = await executeTransaction('create_product_request', [
             user_id,
+            address_id,
             JSON.stringify(product_requests) // Convert array to JSON string
         ]);
 
