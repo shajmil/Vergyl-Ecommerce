@@ -556,7 +556,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{local}}/admin/orders?status=Pending",
+							"raw": "{{local}}/admin/orders?limit=100",
 							"host": [
 								"{{local}}"
 							],
@@ -566,10 +566,6 @@
 							],
 							"query": [
 								{
-									"key": "status",
-									"value": "Pending"
-								},
-								{
 									"key": "start_date",
 									"value": "2023-01-01",
 									"disabled": true
@@ -578,6 +574,10 @@
 									"key": "end_date",
 									"value": "2023-12-31",
 									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "100"
 								}
 							]
 						}
@@ -940,7 +940,7 @@
 				"bearer": [
 					{
 						"key": "token",
-						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQyMzEyOTA5LCJleHAiOjE3NDIzOTkzMDl9.oCBIQp0xG2XLlVwlcTnVw-bHrvy6VLwfCpdteOOlsTQ",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQyNDg3MjM2LCJleHAiOjE3NDI1NzM2MzZ9.xrw6ncX5BUvfrw2f0bJwEmBvArBZMk70t6UteSEtqy8",
 						"type": "string"
 					}
 				]
@@ -1527,7 +1527,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"user_id\": \"5\",\r\n  \"otp\": \"503323\"\r\n}",
+							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"213412\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2793,7 +2793,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 21,\n            \"product_id\": 0,\n            \"quantity\": 21,\n            \"price\": 50.00,\n            \"approval_id\":10\n        }\n    ]\n}"
+							"raw": "{\n  \"address_id\": 7,\n  \"subtotal\": 0,\n  \"service_charge\": 0,\n  \"delivery_charge\": 0,\n  \"total\": 0,\n  \"order_items\": [\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 25,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 80.0,\n      \"approval_id\": 308\n    },\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 25,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 23.0,\n      \"approval_id\": 301\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{local}}/orders",
@@ -3422,7 +3422,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJlbWFpbCI6InNhbnVmYXJpczVAZ21haWwuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzQyMzEzNDgxLCJleHAiOjE3NDIzOTk4ODF9.MoD9jjzgFGS_oVKHZqxGBeVqJJ_jK5RzW1L179LGx7E",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMiwiZW1haWwiOiJzaGVqbWlsQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MjQ4Njk1MSwiZXhwIjoxNzQyNTczMzUxfQ.dCiAj0CSfoGcF28i_4CZVDy4vpjpReus9iiA7aHlOBU",
 				"type": "string"
 			}
 		]
