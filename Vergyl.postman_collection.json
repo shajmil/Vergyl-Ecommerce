@@ -21,19 +21,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/admin/product_requests?status=Approved",
+							"raw": "{{local}}/admin/product_requests",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"admin",
 								"product_requests"
-							],
-							"query": [
-								{
-									"key": "status",
-									"value": "Approved"
-								}
 							]
 						}
 					},
@@ -49,13 +43,19 @@
 									}
 								],
 								"url": {
-									"raw": "{{url}}/admin/product_requests",
+									"raw": "{{local}}/admin/product_requests?request_master_id=2",
 									"host": [
-										"{{url}}"
+										"{{local}}"
 									],
 									"path": [
 										"admin",
 										"product_requests"
+									],
+									"query": [
+										{
+											"key": "request_master_id",
+											"value": "2"
+										}
 									]
 								}
 							},
@@ -232,6 +232,73 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 4,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:20:01.000Z\",\n            \"updated_at\": \"2024-12-15T03:31:50.000Z\",\n            \"customer_name\": \"Testt\",\n            \"customer_email\": \"shajmil@gmail.com\"\n        },\n        {\n            \"request_id\": 6,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:33:59.000Z\",\n            \"updated_at\": \"2024-12-15T03:34:18.000Z\",\n            \"customer_name\": \"shajmil\",\n            \"customer_email\": null\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get All Product Requests with master id",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{local}}/admin/product_requests?request_master_id=2",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"admin",
+										"product_requests"
+									],
+									"query": [
+										{
+											"key": "request_master_id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "470"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1d6-61EO10BkP/W45ial0WLgPvAuySw\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 01 Mar 2025 15:09:17 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_master_id\": 2,\n            \"master_status\": \"Completed\",\n            \"master_created_at\": \"2025-03-01T07:45:54.000Z\",\n            \"customer_name\": \"shajmil\",\n            \"customer_email\": null,\n            \"request_id\": 21,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"product_status\": \"Completed\",\n            \"approvals\": \"L - Blue - $17.99 | L - Red - $19.99 | M - Red - $15.99\"\n        }\n    ]\n}"
 						}
 					]
 				},
@@ -251,12 +318,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"action\": \"reject\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+							"raw": "{\n    \"action\": \"approve\",\n    \"approval_options\": [\n        { \"size\": \"M\", \"color\": \"Red\", \"price\": 15.99 },\n        { \"size\": \"L\", \"color\": \"Blue\", \"price\": 17.99 }\n    ]\n}\n"
 						},
 						"url": {
-							"raw": "{{url}}/admin/product_requests/{{id}}",
+							"raw": "{{local}}/admin/product_requests/{{id}}",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"admin",
@@ -282,17 +349,17 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"action\": \"approve\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+									"raw": "{\n    \"action\": \"approve\",\n    \"approval_options\": [\n        { \"size\": \"M\", \"color\": \"Red\", \"price\": 15.99 },\n        { \"size\": \"L\", \"color\": \"Blue\", \"price\": 17.99 }\n    ]\n}\n"
 								},
 								"url": {
-									"raw": "{{url}}/admin/product_requests/6",
+									"raw": "{{local}}/admin/product_requests/21",
 									"host": [
-										"{{url}}"
+										"{{local}}"
 									],
 									"path": [
 										"admin",
 										"product_requests",
-										"6"
+										"21"
 									]
 								}
 							},
@@ -352,7 +419,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"action\": \"reject\",\n    \"admin_price\": 19.99,\n    \"admin_size\": \"L\",\n    \"admin_color\": \"Red\"\n}"
+									"raw": "{\n    \"action\": \"reject\",\n    \"approval_options\": [\n        { \"size\": \"M\", \"color\": \"Red\", \"price\": 15.99 },\n        { \"size\": \"L\", \"color\": \"Blue\", \"price\": 17.99 }\n    ]\n}\n"
 								},
 								"url": {
 									"raw": "{{url}}/admin/product_requests/{{id}}",
@@ -405,6 +472,76 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Product request rejected successfully\",\n    \"data\": [\n        {\n            \"request_id\": 5,\n            \"updated_count\": 1\n        }\n    ]\n}"
+						},
+						{
+							"name": "Handle Product Request",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"action\": \"approve\",\n    \"approval_options\": [\n        { \"size\": \"M\", \"color\": \"Red\", \"price\": 15.99 },\n        { \"size\": \"L\", \"color\": \"Blue\", \"price\": 17.99 }\n    ]\n}\n"
+								},
+								"url": {
+									"raw": "{{local}}/admin/product_requests/{{id}}",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"admin",
+										"product_requests",
+										"{{id}}"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "62"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"3e-NXfoiuTC0Xhqa0aeDVFTa2YQKME\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 09 Mar 2025 18:38:10 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Failed to handle product request\"\n}"
 						}
 					]
 				},
@@ -419,9 +556,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/admin/orders?status=Pending",
+							"raw": "{{local}}/admin/orders?status=Pending",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"admin",
@@ -536,11 +673,12 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/orders/{{id}}",
+							"raw": "{{url}}/admin/orders/{{id}}",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
+								"admin",
 								"orders",
 								"{{id}}"
 							]
@@ -626,7 +764,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"status\": \"Shipped\"\n}"
+							"raw": "{\n    \"status\": \"Refunded\"\n}"
 						},
 						"url": {
 							"raw": "{{url}}/admin/orders/{{id}}/status",
@@ -760,13 +898,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/api/admin/orders/{{id}}",
+							"raw": "{{url}}/orders/{{id}}",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
-								"api",
-								"admin",
 								"orders",
 								"{{id}}"
 							]
@@ -797,6 +933,38 @@
 						}
 					},
 					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQyMzEyOTA5LCJleHAiOjE3NDIzOTkzMDl9.oCBIQp0xG2XLlVwlcTnVw-bHrvy6VLwfCpdteOOlsTQ",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},
@@ -1024,7 +1192,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"social_id\": \"ELogi43nGle2432444ae\",\r\n  \"email\": \"shejmil@gmail.com\",\r\n  \"name\": \"shajmil Dh\",\r\n  \"login_type\": \"google\"\r\n}",
+							"raw": "{\r\n  \"social_id\": \"sha34\",\r\n  \"email\": \"shajmil@gmail.com\",\r\n  \"name\": \"shajmil Dh\",\r\n  \"login_type\": \"google\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1359,7 +1527,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"user_id\": \"2\",\r\n  \"otp\": \"704677\"\r\n}",
+							"raw": "{\r\n  \"user_id\": \"5\",\r\n  \"otp\": \"503323\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2212,88 +2380,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"product_name\": \"Custom T-Shirt\",\n    \"description\": \"A custom T-shirt with specific design\",\n    \"requested_size\": \"M\",\n    \"requested_color\": \"Red\"\n}"
+							"raw": "{\n    \"address_id\":12,\n    \"product_requests\": [\n        {\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        },\n          {\n            \"product_name\": \"Shirt\",\n            \"description\": \"A Loin  design\",\n            \"requested_size\": \"S\",\n            \"requested_color\": \"Black\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        }\n    ]\n}\n"
 						},
 						"url": {
-							"raw": "{{url}}/product_requests",
+							"raw": "{{local}}/product_requests",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"product_requests"
 							]
 						}
 					},
-					"response": [
-						{
-							"name": "Create Product Request",
-							"originalRequest": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{token}}"
-									},
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"product_name\": \"Custom T-Shirt\",\n    \"description\": \"A custom T-shirt with specific design\",\n    \"requested_size\": \"M\",\n    \"requested_color\": \"Red\"\n}"
-								},
-								"url": {
-									"raw": "{{url}}/product_requests",
-									"host": [
-										"{{url}}"
-									],
-									"path": [
-										"product_requests"
-									]
-								}
-							},
-							"status": "Created",
-							"code": 201,
-							"_postman_previewlanguage": "json",
-							"header": [
-								{
-									"key": "X-Powered-By",
-									"value": "Express"
-								},
-								{
-									"key": "Access-Control-Allow-Origin",
-									"value": "*"
-								},
-								{
-									"key": "Content-Type",
-									"value": "application/json; charset=utf-8"
-								},
-								{
-									"key": "Content-Length",
-									"value": "91"
-								},
-								{
-									"key": "ETag",
-									"value": "W/\"5b-MLmMjKfqx5AJPEu0otCi4CNSQgA\""
-								},
-								{
-									"key": "Date",
-									"value": "Sun, 15 Dec 2024 08:50:52 GMT"
-								},
-								{
-									"key": "Connection",
-									"value": "keep-alive"
-								},
-								{
-									"key": "Keep-Alive",
-									"value": "timeout=5"
-								}
-							],
-							"cookie": [],
-							"body": "{\n    \"success\": true,\n    \"message\": \"Product request created successfully\",\n    \"data\": [\n        {\n            \"request_id\": 5\n        }\n    ]\n}"
-						}
-					]
+					"response": []
 				},
 				{
 					"name": "Get Customer Product Requests",
@@ -2306,18 +2405,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/product_requests?status=Approved",
+							"raw": "{{local}}/product_requests/get_customer_product_requests",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
-								"product_requests"
-							],
-							"query": [
-								{
-									"key": "status",
-									"value": "Approved"
-								}
+								"product_requests",
+								"get_customer_product_requests"
 							]
 						}
 					},
@@ -2513,6 +2607,168 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_id\": 6,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"status\": \"Approved\",\n            \"admin_price\": \"19.99\",\n            \"admin_size\": \"L\",\n            \"admin_color\": \"Red\",\n            \"created_at\": \"2024-12-15T03:33:59.000Z\",\n            \"updated_at\": \"2024-12-15T03:34:18.000Z\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get Customer Product Requests items",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{local}}/product_requests/get_customer_product_requests?request_master_id=2",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"product_requests",
+										"get_customer_product_requests"
+									],
+									"query": [
+										{
+											"key": "request_master_id",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "422"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1a6-9A1g2+YO02r1j8WPkOVGsvBW6Bo\""
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 01 Mar 2025 15:07:16 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_master_id\": 2,\n            \"master_status\": \"Completed\",\n            \"master_created_at\": \"2025-03-01T07:45:54.000Z\",\n            \"request_id\": 21,\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"product_status\": \"Completed\",\n            \"approvals\": \"L - Blue - $17.99 | L - Red - $19.99 | M - Red - $15.99\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get Customer Product Requests",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{local}}/product_requests/get_customer_product_requests?request_master_id=5",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"product_requests",
+										"get_customer_product_requests"
+									],
+									"query": [
+										{
+											"key": "request_master_id",
+											"value": "5"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Tue, 18 Mar 2025 15:42:35 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "428"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"4c3-Osq9aB0edkEa6fgRf+aqxlRkkBg\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "b7d5a464-3f92-4522"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "9225d73e2854936d-MAA"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product requests retrieved successfully\",\n    \"data\": [\n        {\n            \"request_master_id\": 5,\n            \"master_status\": \"Pending\",\n            \"master_created_at\": \"2025-03-15T05:47:06.000Z\",\n            \"customer_name\": \"sanin\",\n            \"customer_email\": \"sanufaris5@gmail.com\",\n            \"address_line\": null,\n            \"city\": null,\n            \"state\": null,\n            \"zip_code\": null,\n            \"country\": null,\n            \"product_requests\": [\n                {\n                    \"image\": \"http://rukmini1.flixcart.com/image/300/300/xif0q/trouser/m/3/a/34-500-bls-54-jeancherry-original-imah63efvfpd2bmu.jpeg\",\n                    \"status\": \"Pending\",\n                    \"approvals\": null,\n                    \"request_id\": 25,\n                    \"description\": \"Jeancherry Tapered Men Blue Trousers\",\n                    \"product_name\": \"Jeancherry Tapered Men Blue Trousers - Buy Jeancherry Tapered Men Blue Trousers Online at Best Prices in India | Flipkart.com\",\n                    \"requested_size\": \"\",\n                    \"requested_color\": \"\",\n                    \"request_status_id\": 1\n                },\n                {\n                    \"image\": \"http://rukmini1.flixcart.com/image/300/300/xif0q/trouser/m/3/a/34-500-bls-54-jeancherry-original-imah63efvfpd2bmu.jpeg\",\n                    \"status\": \"Pending\",\n                    \"approvals\": null,\n                    \"request_id\": 26,\n                    \"description\": \"Jeancherry Tapered Men Blue Trousers\",\n                    \"product_name\": \"Jeancherry Tapered Men Blue Trousers - Buy Jeancherry Tapered Men Blue Trousers Online at Best Prices in India | Flipkart.com\",\n                    \"requested_size\": \"\",\n                    \"requested_color\": \"\",\n                    \"request_status_id\": 1\n                }\n            ]\n        }\n    ]\n}"
 						}
 					]
 				}
@@ -2537,12 +2793,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 6,\n            \"product_id\": 0,\n            \"quantity\": 2,\n            \"price\": 50.00\n        }\n    ]\n}"
+							"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 21,\n            \"product_id\": 0,\n            \"quantity\": 21,\n            \"price\": 50.00,\n            \"approval_id\":10\n        }\n    ]\n}"
 						},
 						"url": {
-							"raw": "{{url}}/orders",
+							"raw": "{{local}}/orders",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"orders"
@@ -2617,6 +2873,170 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Order created successfully\",\n    \"data\": [\n        {\n            \"order_id\": 9\n        }\n    ]\n}"
+						},
+						{
+							"name": "Create Order",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 21,\n            \"product_id\": 0,\n            \"quantity\": 21,\n            \"price\": 50.00,\n            \"approval_id\":10\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{local}}/orders",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"orders"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "102"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"66-hahxt53oVobvaQS0O/Qq1nQC2ZE\""
+								},
+								{
+									"key": "Date",
+									"value": "Tue, 11 Mar 2025 15:52:40 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order created successfully\",\n    \"data\": [\n        {\n            \"order_id\": 39,\n            \"blocked_products\": []\n        }\n    ]\n}"
+						},
+						{
+							"name": "new",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"address_id\": 1,\n    \"subtotal\": 100.00,\n    \"service_charge\": 10.00,\n    \"delivery_charge\": 5.00,\n    \"total\": 115.00,\n    \"order_items\": [\n        {\n            \"is_custom_product\": 1,\n            \"product_request_id\": 21,\n            \"product_id\": 0,\n            \"quantity\": 21,\n            \"price\": 50.00,\n            \"approval_id\":10\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{url}}/orders",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"orders"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Sat, 15 Mar 2025 05:32:39 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "84"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"66-ctIWKyzTzTtgZj7XFMPn7ELfXew\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "215e2844-5fe2-4967"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "9209a1a4ee649374-MAA"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Order created successfully\",\n    \"data\": [\n        {\n            \"order_id\": 41,\n            \"blocked_products\": []\n        }\n    ]\n}"
 						}
 					]
 				},
@@ -2704,7 +3124,7 @@
 					]
 				},
 				{
-					"name": "Get Customer Order Details Copy",
+					"name": "Get Customer Order Details",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2714,9 +3134,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{url}}/orders/{{id}}",
+							"raw": "{{local}}/orders/{{id}}",
 							"host": [
-								"{{url}}"
+								"{{local}}"
 							],
 							"path": [
 								"orders",
@@ -2789,7 +3209,7 @@
 					]
 				},
 				{
-					"name": "Get Customer Order History Copy",
+					"name": "Get Customer Order History =",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2884,7 +3304,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"url\": \"https://www.noon.com/uae-en/a50-dual-sim-lime-green-3-5gb-ram-64gb-4g-middle-east-version/N70081964V/p/?o=cd543d05d28a144a\"\r\n}",
+					"raw": "{\r\n  \"url\": \"https://www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -3002,7 +3422,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0MjUyODc0LCJleHAiOjE3MzQzMzkyNzR9.Nta35jbVXIPRhVlcHKWZgcwo06_krksOUGBbgQ9I0bI",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJlbWFpbCI6InNhbnVmYXJpczVAZ21haWwuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNzQyMzEzNDgxLCJleHAiOjE3NDIzOTk4ODF9.MoD9jjzgFGS_oVKHZqxGBeVqJJ_jK5RzW1L179LGx7E",
 				"type": "string"
 			}
 		]

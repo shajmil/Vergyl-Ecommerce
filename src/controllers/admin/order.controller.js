@@ -42,7 +42,7 @@ const get_admin_order_details = async (req, res) => {
         //     customer: result[2][0],
         //     address: result[3][0]
         // };
-        const orderDetails = {
+        const orderDetails = { 
             ...result[0][0],
             items: result[1]
         };
@@ -172,8 +172,8 @@ module.exports = {
     get_admin_order_details,
     update_order_status,
     update_order_schedule,
-    manage_order_items,    // Add this
-    delete_order,          // Add this
-    get_order_history // Add this
+    manage_order_items,    
+    delete_order,          
+    get_order_history 
 };
 
