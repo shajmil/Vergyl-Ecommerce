@@ -935,16 +935,6 @@
 					"response": []
 				}
 			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJlbWFpbCI6bnVsbCwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQyNDg3MjM2LCJleHAiOjE3NDI1NzM2MzZ9.xrw6ncX5BUvfrw2f0bJwEmBvArBZMk70t6UteSEtqy8",
-						"type": "string"
-					}
-				]
-			},
 			"event": [
 				{
 					"listen": "prerequest",
@@ -2380,7 +2370,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"address_id\":12,\n    \"product_requests\": [\n        {\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        },\n          {\n            \"product_name\": \"Shirt\",\n            \"description\": \"A Loin  design\",\n            \"requested_size\": \"S\",\n            \"requested_color\": \"Black\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        }\n    ]\n}\n"
+							"raw": "{\n    \"address_id\":12,\n    \"delivery_date\":\"2025-04-31\",\n    \"product_requests\": [\n        {\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        },\n          {\n            \"product_name\": \"Shirt\",\n            \"description\": \"A Loin  design\",\n            \"requested_size\": \"S\",\n            \"requested_color\": \"Black\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        }\n    ]\n}\n"
 						},
 						"url": {
 							"raw": "{{local}}/product_requests",
@@ -2392,7 +2382,104 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Create Product Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"address_id\":12,\n    \"delivery_date\":\"2025-04-31\",\n    \"product_requests\": [\n        {\n            \"product_name\": \"Custom T-Shirt\",\n            \"description\": \"A custom T-shirt with specific design\",\n            \"requested_size\": \"M\",\n            \"requested_color\": \"Red\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        },\n          {\n            \"product_name\": \"Shirt\",\n            \"description\": \"A Loin  design\",\n            \"requested_size\": \"S\",\n            \"requested_color\": \"Black\",\n            \"image\": \"//www.myntra.com/trousers/blackberrys/blackberrys-men-tapered-fit-low-rise-trousers/23218072/buy\"\n        }\n    ]\n}\n"
+								},
+								"url": {
+									"raw": "{{local}}/product_requests",
+									"host": [
+										"{{local}}"
+									],
+									"path": [
+										"product_requests"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Mon, 19 May 2025 10:55:22 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "82"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "access-control-allow-origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "br"
+								},
+								{
+									"key": "etag",
+									"value": "W/\"63-c/Mr4YT4GNIjW1BDiNLVy8Miz1o\""
+								},
+								{
+									"key": "rndr-id",
+									"value": "40179acc-90a5-4942"
+								},
+								{
+									"key": "vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "x-powered-by",
+									"value": "Express"
+								},
+								{
+									"key": "x-render-origin-server",
+									"value": "Render"
+								},
+								{
+									"key": "cf-cache-status",
+									"value": "DYNAMIC"
+								},
+								{
+									"key": "Server",
+									"value": "cloudflare"
+								},
+								{
+									"key": "CF-RAY",
+									"value": "94230fbc9f2d7f4e-MAA"
+								},
+								{
+									"key": "alt-svc",
+									"value": "h3=\":443\"; ma=86400"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Product request created successfully\",\n    \"data\": [\n        {\n            \"request_master_id\": 32\n        }\n    ]\n}"
+						}
+					]
 				},
 				{
 					"name": "Get Customer Product Requests",
@@ -2405,13 +2492,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{local}}/product_requests/get_customer_product_requests",
+							"raw": "{{local}}/product_requests/get_customer_product_requests?request_master_id=31",
 							"host": [
 								"{{local}}"
 							],
 							"path": [
 								"product_requests",
 								"get_customer_product_requests"
+							],
+							"query": [
+								{
+									"key": "request_master_id",
+									"value": "31"
+								}
 							]
 						}
 					},
@@ -2793,7 +2886,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"address_id\": 7,\n  \"subtotal\": 0,\n  \"service_charge\": 0,\n  \"delivery_charge\": 0,\n  \"total\": 0,\n  \"order_items\": [\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 25,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 80.0,\n      \"approval_id\": 308\n    },\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 25,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 23.0,\n      \"approval_id\": 301\n    }\n  ]\n}"
+							"raw": "{\n  \"address_id\": 7,\n  \"subtotal\": 0,\n  \"service_charge\": 0,\n  \"delivery_charge\": 0,\n  \"total\": 0,\n  \"order_items\": [\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 80,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 80.0,\n      \"approval_id\": 320\n    },\n    {\n      \"is_custom_product\": 1,\n      \"product_request_id\": 81,\n      \"product_id\": 0,\n      \"quantity\": 1,\n      \"price\": 23.0,\n      \"approval_id\": 322\n    }\n  ]\n}"
 						},
 						"url": {
 							"raw": "{{local}}/orders",
@@ -3422,7 +3515,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMiwiZW1haWwiOiJzaGVqbWlsQGdtYWlsLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc0MjQ4Njk1MSwiZXhwIjoxNzQyNTczMzUxfQ.dCiAj0CSfoGcF28i_4CZVDy4vpjpReus9iiA7aHlOBU",
+				"value": "{{auth}}",
 				"type": "string"
 			}
 		]
