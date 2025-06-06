@@ -11,6 +11,17 @@ const get_orders = async (req, res) => {
         return errorResponse(res, 'Failed to fetch orders', 500);
     }
 };
+const get_not_deliverable_dates = async (req, res) => {
+    
+    try {
+        const result = await getmultipleSP('get_not_deliverable_dates', []);
+        
+        return successResponse(res, 'Data retrieved successfully', result[0]);
+    } catch (error) {
+        console.error('get_not_deliverable_dates  error:', error);
+        return errorResponse(res, 'Failed to fetch not delivarable dates', 500);
+    }
+};
 const delete_order = async (req, res) => {
     try {
         const order_id = req.params.id;
@@ -141,5 +152,6 @@ module.exports = {
     get_order_details,
     update_order_delivery,
     delete_order,       
-    get_order_history
+    get_order_history,
+    get_not_deliverable_dates,
 };
