@@ -75,6 +75,7 @@ BEGIN
     DECLARE unapproved_products TEXT DEFAULT ''; -- Store rejected products
     DECLARE approved_requests TEXT DEFAULT ''; -- Store approved product request IDs
     DECLARE affected_request_masters TEXT DEFAULT ''; -- Store affected request_master_ids
+    Declare delivery_date_ varchar(50);
 
     SET item_count = JSON_LENGTH(p_order_items);
 
@@ -108,6 +109,8 @@ BEGIN
                 SELECT request_master_id INTO request_master_id_
                 FROM product_requests 
                 WHERE request_id = product_request_id;
+				
+           
 
                 -- Insert approved custom product into order_items
                 INSERT INTO order_items (order_id, is_custom_product, product_request_id, quantity, price,approval_id)
@@ -156,6 +159,9 @@ BEGIN
     INSERT INTO order_history (order_id, status, updated_at)
     VALUES (order_id_, 'Pending', NOW());
 
+	select delivery_date into delivery_date_ from product_request_master where request_master_id = request_master_id_ ;
+	update orders set scheduled_time =  delivery_date_ where order_id = order_id_;
+
     -- Return order ID
     SELECT order_id_ AS order_id;
 
@@ -170,7 +176,9 @@ DELIMITER $$
 CREATE DEFINER="avnadmin"@"%" PROCEDURE "create_product_request"(
     IN p_user_id INT,
     IN p_address_id INT,
-    IN p_product_requests JSON 
+    IN p_product_requests JSON ,
+	IN p_Delivery_Date VARCHAR(50)
+
 )
 BEGIN
     DECLARE master_id INT;
@@ -180,15 +188,15 @@ BEGIN
     DECLARE p_description TEXT;
     DECLARE p_requested_size VARCHAR(100);
     DECLARE p_requested_color VARCHAR(100);
-    DECLARE p_image TEXT;
+    DECLARE p_image TEXT; 
     
     -- Get 'Pending' status ID
     DECLARE pending_status_id INT;
     SELECT request_status_id INTO pending_status_id FROM request_status WHERE status_name = 'Pending';
 
     -- Step 1: Insert into product_request_master (added address_id)
-    INSERT INTO product_request_master (user_id, address_id, status, request_status_id, created_at, updated_at)
-    VALUES (p_user_id, p_address_id, 'Pending', pending_status_id, NOW(), NOW());
+    INSERT INTO product_request_master (user_id, address_id, status, request_status_id, created_at, updated_at,delivery_date)
+    VALUES (p_user_id, p_address_id, 'Pending', pending_status_id, NOW(), NOW(),p_Delivery_Date);
 
     -- Get the inserted master request ID
     SET master_id = LAST_INSERT_ID();
@@ -460,6 +468,7 @@ BEGIN
 	SELECT 
 		    prm.request_master_id,
 			prm.status AS master_status,
+			prm.delivery_date,
 			u.name AS customer_name, 
 			u.email AS customer_email,
 			a.address_line,
@@ -508,6 +517,8 @@ BEGIN
             a.zip_code,
             a.country,
             prm.address_id,
+            prm.delivery_date,
+
 
     -- JSON Array for Product Requests
     CAST(
@@ -558,6 +569,40 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customers"(
+    IN p_search VARCHAR(255),
+    IN p_limit INT,
+    IN p_offset INT
+)
+BEGIN
+    -- Get total count first
+    SELECT COUNT(DISTINCT u.user_id) as total
+    FROM users u
+    WHERE u.role = 'customer'
+    AND (p_search IS NULL 
+         OR u.name LIKE CONCAT('%', p_search, '%')
+         OR u.email LIKE CONCAT('%', p_search, '%')
+         OR u.phone LIKE CONCAT('%', p_search, '%'));
+
+    -- Get paginated results with aggregates
+    SELECT 
+        u.*,
+        COUNT(DISTINCT o.order_id) as total_orders,
+        COALESCE(SUM(o.total), 0) as total_spent
+    FROM users u
+    LEFT JOIN orders o ON u.user_id = o.user_id
+    WHERE u.role = 'customer'
+    AND (p_search IS NULL 
+         OR u.name LIKE CONCAT('%', p_search, '%')
+         OR u.email LIKE CONCAT('%', p_search, '%')
+         OR u.phone LIKE CONCAT('%', p_search, '%'))
+    GROUP BY u.user_id
+    ORDER BY total_spent DESC
+    LIMIT p_limit OFFSET p_offset;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customer_details"(
     IN p_customer_id INT
 )
@@ -601,11 +646,12 @@ BEGIN
 				prm.request_master_id,
 				prm.status AS master_status,
 				prm.created_at AS mastzer_created_at,
+                prm.delivery_date,
 				a.address_line,
 				a.city,
 				a.state,
 				a.zip_code,
-				a.country,
+				a.country, 
 
 				-- JSON Array of Images from product_requests
 				CAST(
@@ -645,6 +691,8 @@ BEGIN
             a.zip_code,
             a.country,
             prm.address_id,
+            prm.delivery_date,
+
 
             -- JSON Array for Product Requests
             CAST(
@@ -743,36 +791,48 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_customers"(
-    IN p_search VARCHAR(255),
-    IN p_limit INT,
-    IN p_offset INT
+CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_orders"(
+    IN p_user_id INT
 )
 BEGIN
-    -- Get total count first
-    SELECT COUNT(DISTINCT u.user_id) as total
-    FROM users u
-    WHERE u.role = 'customer'
-    AND (p_search IS NULL 
-         OR u.name LIKE CONCAT('%', p_search, '%')
-         OR u.email LIKE CONCAT('%', p_search, '%')
-         OR u.phone LIKE CONCAT('%', p_search, '%'));
-
-    -- Get paginated results with aggregates
+    -- Get orders for a specific user with only images
     SELECT 
-        u.*,
-        COUNT(DISTINCT o.order_id) as total_orders,
-        COALESCE(SUM(o.total), 0) as total_spent
-    FROM users u
-    LEFT JOIN orders o ON u.user_id = o.user_id
-    WHERE u.role = 'customer'
-    AND (p_search IS NULL 
-         OR u.name LIKE CONCAT('%', p_search, '%')
-         OR u.email LIKE CONCAT('%', p_search, '%')
-         OR u.phone LIKE CONCAT('%', p_search, '%'))
-    GROUP BY u.user_id
-    ORDER BY total_spent DESC
-    LIMIT p_limit OFFSET p_offset;
+        o.order_id,
+        o.address_id,
+        a.address_line,
+        a.city,
+        a.state,
+        a.zip_code,
+        a.country,
+        o.subtotal,
+        o.service_charge,
+        o.delivery_charge,
+         o.scheduled_time,
+        o.total,
+        o.status,
+        os.status_name AS order_status,
+        o.created_at,
+
+        -- JSON Array for Order Images
+        CAST(
+            COALESCE((
+                SELECT JSON_ARRAYAGG(
+                    IF(oi.is_custom_product = 1, pr.image, p.image) -- Fetch product or custom product image
+                )
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.product_id
+                LEFT JOIN product_requests pr ON oi.product_request_id = pr.request_id
+                WHERE oi.order_id = o.order_id
+            ), '[]') AS JSON
+        ) AS order_images -- Array of Images
+
+    FROM orders o
+    LEFT JOIN order_status os ON o.order_status_id = os.order_status_id
+    LEFT JOIN addresses a ON o.address_id = a.address_id
+    WHERE o.user_id = p_user_id
+      AND o.delete_status = 0
+    GROUP BY o.order_id
+    ORDER BY o.created_at DESC;
 END$$
 DELIMITER ;
 
@@ -855,6 +915,8 @@ BEGIN
            oh.order_status_id,
            oh.updated_at, 
            o.user_id,
+                   o.scheduled_time,
+
            u.name AS customer_name
     FROM order_history oh
     JOIN orders o ON oh.order_id = o.order_id
@@ -892,51 +954,6 @@ BEGIN
     AND (p_status IS NULL OR status = p_status)
     GROUP BY DATE(created_at), status
     ORDER BY date DESC;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE DEFINER="avnadmin"@"%" PROCEDURE "get_orders"(
-    IN p_user_id INT
-)
-BEGIN
-    -- Get orders for a specific user with only images
-    SELECT 
-        o.order_id,
-        o.address_id,
-        a.address_line,
-        a.city,
-        a.state,
-        a.zip_code,
-        a.country,
-        o.subtotal,
-        o.service_charge,
-        o.delivery_charge,
-        o.total,
-        o.status,
-        os.status_name AS order_status,
-        o.created_at,
-
-        -- JSON Array for Order Images
-        CAST(
-            COALESCE((
-                SELECT JSON_ARRAYAGG(
-                    IF(oi.is_custom_product = 1, pr.image, p.image) -- Fetch product or custom product image
-                )
-                FROM order_items oi
-                LEFT JOIN products p ON oi.product_id = p.product_id
-                LEFT JOIN product_requests pr ON oi.product_request_id = pr.request_id
-                WHERE oi.order_id = o.order_id
-            ), '[]') AS JSON
-        ) AS order_images -- Array of Images
-
-    FROM orders o
-    LEFT JOIN order_status os ON o.order_status_id = os.order_status_id
-    LEFT JOIN addresses a ON o.address_id = a.address_id
-    WHERE o.user_id = p_user_id
-      AND o.delete_status = 0
-    GROUP BY o.order_id
-    ORDER BY o.created_at DESC;
 END$$
 DELIMITER ;
 
