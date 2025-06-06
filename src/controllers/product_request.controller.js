@@ -5,6 +5,7 @@ const create_product_request = async (req, res) => {
     try {
         const user_id = req.user.user_id;
         const address_id = req.body.address_id;
+        const delivery_time = req.body.delivery_time;
         const product_requests = req.body.product_requests; // Expecting an array of products
         const delivery_date = req.body.delivery_date; // Expecting an array of products
 
@@ -16,8 +17,9 @@ const create_product_request = async (req, res) => {
         const result = await executeTransaction('create_product_request', [
             user_id,
             address_id,
-            JSON.stringify(product_requests) ,// Convert array to JSON string,
-            delivery_date
+            delivery_date,
+            delivery_time,
+            JSON.stringify(product_requests) // Convert array to JSON string
         ]);
 
         return successResponse(res, 'Product request created successfully', result, 201);
