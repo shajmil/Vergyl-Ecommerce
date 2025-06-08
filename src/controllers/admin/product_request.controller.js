@@ -2,10 +2,10 @@ const { executeTransaction, getmultipleSP } = require('../../helpers/sp-caller')
 const { successResponse, errorResponse } = require('../../helpers/response.helper');
 
 
-const get_all_product_requests = async (req, res) => {
+const get_product_request_details = async (req, res) => {
     try {
         const { status, request_master_id } = req.query; // Get params from query
-        const result = await getmultipleSP('get_all_product_requests', [
+        const result = await getmultipleSP('get_product_request_details', [
             status || null, 
             parseInt(request_master_id) || 0
         ]);
@@ -14,6 +14,19 @@ const get_all_product_requests = async (req, res) => {
     } catch (error) {
         console.error('Get all product requests error:', error);
         return errorResponse(res, 'Failed to fetch product requests', 500);
+    }
+};
+const get_all_product_requests = async (req, res) => {
+    try {
+        const { status } = req.query; // Get params from query
+        const result = await getmultipleSP('get_all_product_requests', [
+            status || null, 
+                ]);
+
+        return successResponse(res, 'Product requests list retrieved successfully', result[0]);
+    } catch (error) {
+        console.error('Get all product requests error:', error);
+        return errorResponse(res, 'Failed to fetch product requests list', 500);
     }
 };
 
@@ -44,6 +57,7 @@ const handle_product_request = async (req, res) => {
 
 
 module.exports = {
-    get_all_product_requests,
-    handle_product_request
+    get_product_request_details,
+    handle_product_request,
+    get_all_product_requests
 };
