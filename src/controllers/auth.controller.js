@@ -101,7 +101,7 @@ const socialLogin = async (req, res) => {
                 role: user.role 
             },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            // { expiresIn: '24h' }
         );
 
         return successResponse(res, 'Login successful', {
@@ -158,7 +158,6 @@ console.log('user',user);
         );
 
         return successResponse(res, 'Login successful', {
-            token,
             user: {
                 user_id: user.user_id,
                 name: user.name,
@@ -166,7 +165,8 @@ console.log('user',user);
                 phone: user.phone,
                 role: user.role,
                 has_size_preferences: !!user.size_preferences,
-                size_preferences: user.size_preferences
+                size_preferences: user.size_preferences,
+                token:token
             }
         });
 
