@@ -2,6 +2,8 @@ const { fetchWithFallback } = require('../services/preview.service');
 const cheerio = require('cheerio');
 
 const generateLinkPreview = async (req, res) => {
+    let validUrl;
+
     try {
         const { url } = req.body;
         if (!url) {
@@ -11,7 +13,6 @@ const generateLinkPreview = async (req, res) => {
         console.log('Fetching preview for:', url);
 
         // Validate URL
-        let validUrl;
         try {
             validUrl = new URL(url).href;
         } catch (e) {
@@ -38,12 +39,12 @@ const generateLinkPreview = async (req, res) => {
         };
 
         const preview = {
-            url: validUrl,
+            product_link: validUrl,
             title: $('meta[name="extracted-title"]').attr('content') || 
                    getMetaTag($, 'title') || 
                    $('title').first().text().split('|')[0].trim(),
             description: getMetaTag($, 'description') || $('p').first().text(),
-            image: $('meta[name="product-image"]').attr('content') || 
+            image_link: $('meta[name="product-image"]').attr('content') || 
                    getMetaTag($, 'image') ||
                    $('img').first().attr('src'),
             favicon: $('link[rel="shortcut icon"]').attr('href') ||
@@ -53,8 +54,8 @@ const generateLinkPreview = async (req, res) => {
         };
 
         // Clean up relative URLs
-        if (preview.image && !preview.image.startsWith('http')) {
-            preview.image = new URL(preview.image, validUrl).href;
+        if (preview.image_link && !preview.image_link.startsWith('http')) {
+            preview.image_link = new URL(preview.image_link, validUrl).href;
         }
         if (preview.favicon && !preview.favicon.startsWith('http')) {
             preview.favicon = new URL(preview.favicon, validUrl).href;
@@ -63,12 +64,23 @@ const generateLinkPreview = async (req, res) => {
         console.log('Generated preview:', preview);
         res.json(preview);
     } catch (error) {
-        console.error('Link preview error:', error);
-        res.status(500).json({
-            error: 'Failed to generate link preview',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+         const preview = {
+            product_link: validUrl,
+            title:"",
+            description:"",
+            image_link:"",
+            favicon:"",
+            domain: "",
+            author: ""
+        };
+                res.status(200).json(preview);
+
+        // console.error('Link preview error:', error);
+        // res.status(500).json({
+        //     error: 'Failed to generate link preview',
+        //     message: error.message,
+        //     stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        // });
     }
 };
 
