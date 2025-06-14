@@ -59,11 +59,12 @@ router.get('/reports/customers', get_customer_reports);
 // Product Requests
 const {
     get_product_request_details,
-    handle_product_request,get_all_product_requests
+    handle_product_request,get_all_product_requests,handle_multiple_product_requests
 } = require('../controllers/admin/product_request.controller');
 
 router.get('/get_product_request_details', get_product_request_details);
 router.get('/get_all_product_requests', get_all_product_requests);
-router.put('/product_requests/:id', handle_product_request);
+router.put('/product_requests/:id/:id', handle_product_request);
+router.put('/handle_multiple_product_requests/:id/:id', handle_multiple_product_requests);
 
 module.exports = router; 
