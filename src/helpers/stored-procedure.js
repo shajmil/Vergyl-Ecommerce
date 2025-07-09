@@ -3,7 +3,10 @@
  */
 
 const db = require("../config/database");
-const util = require("util");
+
+const isObject = (obj) => {
+    return obj !== null && typeof obj === 'object' && !Array.isArray(obj);
+};
 class StoredProcedure {
   constructor(name, params,db1) {
     this.db=db1;
@@ -36,11 +39,11 @@ class StoredProcedure {
       if (!params[key] && typeof params[key] === "undefined") {
         params[key] = null;
       }
-      if (util.isObject(params[key]) && !Array.isArray(params[key])) {
+      if (isObject(params[key]) && !Array.isArray(params[key])) {
         params[key] = JSON.stringify(params[key]);
       }
       if (Array.isArray(params[key])) {
-        if (params[key][0] && util.isObject(params[key][0])) {
+        if (params[key][0] && isObject(params[key][0])) {
           params[key] = JSON.stringify(params[key]);
         }
       }
@@ -58,5 +61,6 @@ class StoredProcedure {
       });
     });
   }
+  
 }
 module.exports = StoredProcedure;
