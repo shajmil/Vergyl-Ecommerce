@@ -40,7 +40,7 @@ const generateLinkPreview = async (req, res) => {
 
         const preview = {
             product_link: validUrl,
-            title: $('meta[name="extracted-title"]').attr('content') || 
+            product_name: $('meta[name="extracted-title"]').attr('content') || 
                    getMetaTag($, 'title') || 
                    $('title').first().text().split('|')[0].trim(),
             description: getMetaTag($, 'description') || $('p').first().text(),
@@ -66,7 +66,7 @@ const generateLinkPreview = async (req, res) => {
     } catch (error) {
          const preview = {
             product_link: validUrl,
-            title:"",
+            product_name:"",
             description:"",
             image_link:"",
             favicon:"",
