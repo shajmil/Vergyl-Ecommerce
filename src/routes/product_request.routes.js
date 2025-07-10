@@ -6,7 +6,7 @@ const {
     get_customer_product_requests
 } = require('../controllers/product_request.controller');
 
-router.post('/', create_product_request);
+router.post('/create_product_request', create_product_request);
 router.get('/get_customer_product_requests', get_customer_product_requests);
 
 module.exports = router;

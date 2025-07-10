@@ -57,12 +57,13 @@ const handle_product_request = async (req, res) => {
 };
 const handle_multiple_product_requests = async (req, res) => {
     try {
-        const request_id = req.params.id;
         const admin_id = req.user.user_id;
-        const { action, requested_order_data } = req.body;
+        const { requested_order_data } = req.body;
 
 
         const userId=requested_order_data.user_id;
+        const request_master_id=requested_order_data.request_master_id;
+        const request_status=requested_order_data.status;
         const requestMasterId=requested_order_data.request_master_id;
 
 
@@ -86,7 +87,11 @@ const handle_multiple_product_requests = async (req, res) => {
         // Execute the stored procedure with all requests at once
         const result = await executeTransaction('handle_multiple_product_requests', [
             admin_id,
-            product_requests
+            product_requests,
+            request_status,
+            request_master_id
+
+
         ]);
 
         if (!result || !result[0]) {
@@ -112,9 +117,9 @@ const handle_multiple_product_requests = async (req, res) => {
             for (const rejectedRequest of rejectedRequests) {
                 try {
                     const notificationData = {
-                        type: 'product_request_rejected',
+                        type: 'product_request',
                         user_id: userId,
-                        request_id: rejectedRequest.request_id,
+                        request_id: requestMasterId,
                         customer_email: req.body.customer_email || '',
                         customer_name: req.body.customer_name || '',
                         product_name: rejectedRequest.product_name || '',
