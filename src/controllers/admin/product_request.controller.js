@@ -62,9 +62,8 @@ const handle_multiple_product_requests = async (req, res) => {
 
 
         const userId=requested_order_data.user_id;
-        const request_master_id=requested_order_data.request_master_id;
         const request_status=requested_order_data.status;
-        const requestMasterId=requested_order_data.request_master_id;
+        const request_master_id=requested_order_data.request_master_id;
 
 
         const product_requests=requested_order_data.product_requests;
@@ -119,13 +118,13 @@ const handle_multiple_product_requests = async (req, res) => {
                     const notificationData = {
                         type: 'product_request',
                         user_id: userId,
-                        request_id: requestMasterId,
+                        request_id: request_master_id,
                         customer_email: req.body.customer_email || '',
                         customer_name: req.body.customer_name || '',
                         product_name: rejectedRequest.product_name || '',
                         admin_remarks: rejectedRequest.admin_remarks || '',
                         message: rejectedRequest.product_name || rejectedRequest.admin_remarks || 'NA',
-                        title: `Your Product Request #${requestMasterId} has been rejected.`,
+                        title: `Your Product Request #${request_master_id} has been rejected.`,
                     };      
 
 
