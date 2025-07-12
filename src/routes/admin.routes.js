@@ -65,6 +65,6 @@ const {
 router.get('/get_product_request_details', get_product_request_details);
 router.get('/get_all_product_requests', get_all_product_requests);
 router.put('/product_requests/:id/:id', handle_product_request);
-router.put('/handle_multiple_product_requests/:id/:id', handle_multiple_product_requests);
+router.put('/handle_multiple_product_requests', handle_multiple_product_requests);
 
 module.exports = router; 
