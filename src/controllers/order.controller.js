@@ -1,21 +1,22 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
 const { successResponse, errorResponse } = require('../helpers/response.helper');
 
-const get_orders = async (req, res) => {
+const get_all_orders = async (req, res) => {
     try {
-        const user_id = req.user.user_id;
-        const result = await getmultipleSP('get_orders', [user_id]);
+        const { status } = req.query; // Get params from query
+        const result = await getmultipleSP('get_all_orders', [ status || null, 
+                ]);
         return successResponse(res, 'Orders retrieved successfully', result[0]);
     } catch (error) {
-        console.error('Get orders error:', error);
+        console.error('Get all orders error:', error);
         return errorResponse(res, 'Failed to fetch orders', 500);
     }
 };
 const get_not_deliverable_dates = async (req, res) => {
-    
+
     try {
         const result = await getmultipleSP('get_not_deliverable_dates', []);
-        
+
         return successResponse(res, 'Data retrieved successfully', result[0]);
     } catch (error) {
         console.error('get_not_deliverable_dates  error:', error);
@@ -40,8 +41,7 @@ const delete_order = async (req, res) => {
 };
 const get_order_details = async (req, res) => {
     try {
-        const user_id = req.user.user_id;
-        const order_id = req.params.id;
+        const order_id = req.query.order_id;
 
         const result = await getmultipleSP('get_order_details', [order_id]);
         console.log(result);
@@ -49,12 +49,9 @@ const get_order_details = async (req, res) => {
             return errorResponse(res, 'Order not found', 404);
         }
 
-        const orderDetails = {
-            ...result[0][0],
-            items: result[1]
-        };
+     
 
-        return successResponse(res, 'Order details retrieved successfully', orderDetails);
+        return successResponse(res, 'Order details retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get order details error:', error);
         return errorResponse(res, 'Failed to fetch order details', 500);
@@ -92,7 +89,7 @@ const get_order_history = async (req, res) => {
         const order_id = req.params.id;
 
         const result = await getmultipleSP('get_order_history', [order_id]);
-        
+
         if (!result[0] || result[0].length === 0) {
             return errorResponse(res, 'Order history not found', 404);
         }
@@ -107,51 +104,66 @@ const get_order_history = async (req, res) => {
 // Update create_order to handle custom products
 const create_order = async (req, res) => {
     try {
-        const user_id = req.user.user_id;
-        const { 
-            address_id, 
-            subtotal,
-            service_charge,
-            delivery_charge,
-            total,
-            order_items 
-        } = req.body;
+        const {  order_data } = req.body;
 
-        const result = await getmultipleSP('create_order', [
+        const {
+            order_id = 0,
+            request_master_id ,
             user_id,
             address_id,
-            subtotal,
-            service_charge,
-            delivery_charge,
-            total,
-            JSON.stringify(order_items)
-        ]);
-        console.log(result);
-        const orderId = result[0][0].order_id;
-        const blockedProducts = result[1]?.length > 0 ? result[1].map(p => p.blocked_products) : [];
+            created_by,
+            updated_by,
+            status = 'Pending',
+            order_status_id,
+            delivery_date,
+            delivery_time,
+            sub_total,
+            service_charge = 0,
+            delivery_charge = 0,
+            tax_amt,
+            total_amt,
+            discount_amt,
+            net_total,
+            order_items
+        } = order_data;
 
-        return res.status(201).json({
-            success: true,
-            message: blockedProducts.length > 0 ? "Order created with some blocked products" : "Order created successfully",
-            data: [{
-                order_id: orderId,
-                blocked_products: blockedProducts
-            }]
-        });
-    
+        const result = await executeTransaction('create_order', [
+            order_id,                           // p_order_id
+            request_master_id,                           // p_request_master_id
+            user_id,                            // p_user_id
+            address_id,                         // p_address_id
+            created_by,                         // p_created_by
+            updated_by,                         // p_updated_by
+            status,                             // p_status
+            order_status_id,                    // p_order_status_id
+            delivery_date,                      // p_delivery_date
+            delivery_time,                      // p_delivery_time
+            sub_total,                          // p_sub_total
+            service_charge,                     // p_service_charge
+            delivery_charge,                    // p_delivery_charge
+            tax_amt,                            // p_tax_amt
+            total_amt,                          // p_total_amt
+            discount_amt,                       // p_discount_amt
+            net_total,                          // p_net_total
+            JSON.stringify(order_items)         // p_order_items
+        ]);
+
+        return successResponse(res, 'Order created successfully', result, 201);
+
+
     } catch (error) {
-        console.error('Create order error:', error);
-        return errorResponse(res, 'Failed to create order', 500);
+        console.error('Create order request error:', error);
+        return errorResponse(res, 'Failed to create order request', 500);
     }
 };
 
 // Export the new method
 module.exports = {
     create_order,
-    get_orders,
+    get_all_orders,
     get_order_details,
     update_order_delivery,
-    delete_order,       
+    delete_order,
     get_order_history,
     get_not_deliverable_dates,
 };

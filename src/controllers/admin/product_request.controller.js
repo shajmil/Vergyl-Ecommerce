@@ -146,6 +146,22 @@ const handle_multiple_product_requests = async (req, res) => {
                     });
                 }
             }
+        }else{
+                    const notificationData = {
+                        type: 'product_request',
+                        user_id: userId,
+                        request_id: request_master_id,
+                        customer_email: req.body.customer_email || '',
+                        customer_name: req.body.customer_name || '',
+                        product_name: '',
+                        admin_remarks: '',
+                        message: '',
+                        title: `Your Product Request #${request_master_id} has been approved.`,
+                    };      
+
+
+                    const notificationResult = await sendNotification(notificationData,"userId_"+userId);
+                 
         }
 
         // Return comprehensive response
