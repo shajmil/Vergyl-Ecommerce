@@ -1,20 +1,72 @@
 const nodemailer = require('nodemailer');
 
 class EmailService {
-    constructor() {
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            }
-        });
+    // Static method to detect email service from email address
+    static getServiceFromEmail(email) {
+        if (!email || typeof email !== 'string') {
+            throw new Error('Invalid email address');
+        }
+
+        const domain = email.toLowerCase().split('@')[1];
+        
+        const serviceMap = {
+            // Gmail
+            'gmail.com': 'gmail',
+            'googlemail.com': 'gmail',
+            
+            // Outlook/Hotmail/Live
+            'outlook.com': 'outlook',
+            'hotmail.com': 'outlook',
+            'live.com': 'outlook',
+            'msn.com': 'outlook',
+        };
+
+        return serviceMap[domain] || 'gmail'; // Default to gmail if unknown
+    }
+
+    // Static method to create EmailService instance from email
+    static fromEmail(email) {
+        const service = EmailService.getServiceFromEmail(email);
+        return new EmailService(service);
+    }
+
+    constructor(provider = 'gmail') {
+        let config;
+        
+        switch (provider.toLowerCase()) {
+            case 'outlook':
+            case 'hotmail':
+                config = {
+                    service: 'hotmail',
+                    auth: {
+                        user: process.env.OUTLOOK_USER,
+                        pass: process.env.OUTLOOK_PASSWORD
+                    }
+                };
+                this.fromEmail = process.env.OUTLOOK_USER;
+                break;
+            
+            case 'gmail':
+            default:
+                config = {
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.GMAIL_USER,
+                        pass: process.env.GMAIL_APP_PASSWORD
+                    }
+                };
+                this.fromEmail = process.env.GMAIL_USER;
+                break;
+        }
+        
+        this.transporter = nodemailer.createTransport(config);
+        this.provider = provider;
     }
 
     // Send OTP email
     async sendOTP(email, otp) {
         const mailOptions = {
-            from: process.env.GMAIL_USER,
+            from: this.fromEmail,
             to: email,
             subject: 'Your Vergyl Login OTP',
             text: `Hello, your Vergyl login OTP is ${otp}. Please use this to sign in.`,
@@ -45,7 +97,7 @@ class EmailService {
     // Generic email sender
     async sendEmail(to, subject, text, html = null) {
         const mailOptions = {
-            from: process.env.GMAIL_USER,
+            from: this.fromEmail,
             to,
             subject,
             text,
@@ -62,37 +114,6 @@ class EmailService {
             };
         } catch (error) {
             console.error('Email sending failed:', error);
-            return {
-                success: false,
-                error: error.message
-            };
-        }
-    }
-
-    // Send welcome email
-    async sendWelcomeEmail(email, userName) {
-        const mailOptions = {
-            from: process.env.GMAIL_USER,
-            to: email,
-            subject: 'Welcome to Vergyl!',
-            text: `Hello ${userName}, welcome to Vergyl! We're excited to have you on board.`,
-            html: `
-                <h1>Welcome to Vergyl, ${userName}!</h1>
-                <p>We're excited to have you on board.</p>
-                <p>Get started by exploring our features and let us know if you need any help.</p>
-            `
-        };
-
-        try {
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('Welcome email sent:', info.response);
-            return {
-                success: true,
-                messageId: info.messageId,
-                response: info.response
-            };
-        } catch (error) {
-            console.error('Welcome email failed:', error);
             return {
                 success: false,
                 error: error.message
