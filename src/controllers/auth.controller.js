@@ -87,34 +87,28 @@ const socialLogin = async (req, res) => {
             ]);
             user = {
                 user_id: result[0].user_id,
-                email: email,
-                name: name,
-                role: 'customer',
+                email: result[0].email,
+                name: result[0].name,
+                role: result[0].role,
+                phone: result[0].phone,
                 size_preferences: null
             };
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { 
-                user_id: user.user_id, 
-                email: user.email, 
-                role: user.role 
-            },
-            process.env.JWT_SECRET,
-            // { expiresIn: '24h' }
-        );
+        const { accessToken, refreshToken } = generateTokens(user);
 
         return successResponse(res, 'Login successful', {
-            token,
             user: {
                 user_id: user.user_id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone,
                 role: user.role,
                 has_size_preferences: !!user.size_preferences,
-                size_preferences: user.size_preferences
-            }
+                size_preferences: user.size_preferences,
+                access_token: accessToken, // Keep for backward compatibility
+                refresh_token: refreshToken // Add refresh token
+            },
         });
 
     } catch (error) {
@@ -163,11 +157,6 @@ const verifyOTP = async (req, res) => {
                 access_token: accessToken, // Keep for backward compatibility
                 refresh_token: refreshToken // Add refresh token
             },
-            // Additional token info (optional)
-            // access_token: accessToken,
-            // refresh_token: refreshToken,
-            // token_type: 'Bearer',
-            // expires_in: process.env.JWT_ACCESS_EXPIRES_IN || '60m'
         });
 
     } catch (error) {

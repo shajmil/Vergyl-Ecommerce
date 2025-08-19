@@ -7,7 +7,7 @@ const { refreshTokenEndpoint,refreshTokenMiddleware} = require('../middlewares/a
 router.post('/login', initiateLogin);
 
 // Route for social login (Google/Apple)
-router.post('/social-login', socialLogin);
+router.post('/socialLogin', socialLogin);
 
 router.post('/update-size-preferences', updateSizePreferences);
 
