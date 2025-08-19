@@ -1,6 +1,7 @@
 const { executeTransaction, getmultipleSP } = require('../helpers/sp-caller');
 const { successResponse, errorResponse } = require('../helpers/response.helper');
 const jwt = require('jsonwebtoken');
+const { generateTokens } = require('../middlewares/auth.middleware');
 
 const initiateLogin = async (req, res) => {
     try {
@@ -132,7 +133,7 @@ const updateSizePreferences = async (req, res) => {
     }
 };
 const verifyOTP = async (req, res) => {
-    try {
+   try {
         const { user_id, otp } = req.body;
 
         // Verify OTP
@@ -145,17 +146,10 @@ const verifyOTP = async (req, res) => {
         // Get user details
         const users = await getmultipleSP('get_user_by_id', [user_id]);
         const user = users[0][0];
-console.log('user',user);
-        // Generate JWT token
-        const token = jwt.sign(
-            { 
-                user_id: user.user_id, 
-                email: user.email, 
-                role: user.role 
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        console.log('user', user);
+
+        // Generate both access and refresh tokens using the new function
+        const { accessToken, refreshToken } = generateTokens(user);
 
         return successResponse(res, 'Login successful', {
             user: {
@@ -166,8 +160,14 @@ console.log('user',user);
                 role: user.role,
                 has_size_preferences: !!user.size_preferences,
                 size_preferences: user.size_preferences,
-                token:token
-            }
+                access_token: accessToken, // Keep for backward compatibility
+                refresh_token: refreshToken // Add refresh token
+            },
+            // Additional token info (optional)
+            // access_token: accessToken,
+            // refresh_token: refreshToken,
+            // token_type: 'Bearer',
+            // expires_in: process.env.JWT_ACCESS_EXPIRES_IN || '60m'
         });
 
     } catch (error) {
