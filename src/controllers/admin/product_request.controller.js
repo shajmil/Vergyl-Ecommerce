@@ -64,6 +64,7 @@ const handle_multiple_product_requests = async (req, res) => {
         const userId=requested_order_data.user_id;
         const request_status=requested_order_data.status;
         const request_master_id=requested_order_data.request_master_id;
+        const total_amt=requested_order_data.total_amt;
 
 
         const product_requests=requested_order_data.product_requests;
@@ -88,7 +89,8 @@ const handle_multiple_product_requests = async (req, res) => {
             admin_id,
             product_requests,
             request_status,
-            request_master_id
+            request_master_id,
+            total_amt
 
 
         ]);
