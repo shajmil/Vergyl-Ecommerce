@@ -59,8 +59,20 @@ const get_customer_product_requests = async (req, res) => {
         return errorResponse(res, 'Failed to fetch product requests', 500);
     }
 };
+const get_current_request = async (req, res) => {
+    try {
+        const user_id = req.user.user_id;
+        const result = await getmultipleSP('get_current_request', [ user_id || null, 
+                ]);
+        return successResponse(res, 'Current request retrieved successfully', result[0]);
+    } catch (error) {
+        console.error('Get all orders error:', error);
+        return errorResponse(res, 'Failed to fetch orders', 500);
+    }
+};
 
 module.exports = {
     create_product_request,
-    get_customer_product_requests
+    get_customer_product_requests,
+    get_current_request
 };
