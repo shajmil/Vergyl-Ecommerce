@@ -60,3 +60,4 @@ build/
 # Optional: Ignore cache/bundle files
 .cache/
 .bundle/
+serviceAccountKey.json
