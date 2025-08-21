@@ -91,7 +91,7 @@ const handleEmailPasswordLogin = async (req, res) => {
 };
 // Handle OTP-based login (existing logic)
 const handleOTPLogin = async (req, res) => {
-    const { email, phone, login_type, name } = req.body;
+    const { email, phone, login_type, name,role } = req.body;
 
     // Validate input based on login type
     const value = login_type === 'email' ? email : phone;
@@ -100,7 +100,7 @@ const handleOTPLogin = async (req, res) => {
     }
 
     // Check if user exists
-    const users = await getmultipleSP('check_user_exists', [value, login_type]);
+    const users = await getmultipleSP('check_user_exists', [value, login_type,role]);
     let user = users[0][0];
 
     // If user doesn't exist, create new user
@@ -108,7 +108,7 @@ const handleOTPLogin = async (req, res) => {
         const result = await executeTransaction('create_user', [
             login_type === 'email' ? value : null, // email
             login_type === 'phone' ? value : null, // phone
-            'customer',
+            role,
             null, // size_preferences initially null
             name,
             null, // password
@@ -120,7 +120,7 @@ const handleOTPLogin = async (req, res) => {
             user_id: result[0].user_id,
             email: login_type === 'email' ? value : null,
             phone: login_type === 'phone' ? value : null,
-            role: 'customer',
+            role: role,
             name: name,
             size_preferences: null
         };
