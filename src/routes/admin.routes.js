@@ -67,4 +67,12 @@ router.get('/get_all_product_requests', get_all_product_requests);
 router.put('/product_requests/:id/:id', handle_product_request);
 router.put('/handle_multiple_product_requests', handle_multiple_product_requests);
 
+const {
+    get_settings,
+    add_settings
+} = require('../controllers/admin/admin.settings');
+
+router.post('/add_settings', add_settings);
+router.get('/get_settings', get_settings);
+
 module.exports = router; 
