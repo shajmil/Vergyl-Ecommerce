@@ -116,6 +116,7 @@ const create_order = async (req, res) => {
             status = 'Pending',
             order_status_id,
             delivery_date,
+            requested_delivery_date,
             delivery_time,
             sub_total,
             service_charge = 0,
@@ -124,6 +125,7 @@ const create_order = async (req, res) => {
             total_amt,
             discount_amt,
             net_total,
+            is_express_delivery,
             order_items
         } = order_data;
 
@@ -137,6 +139,7 @@ const create_order = async (req, res) => {
             status,                             // p_status
             order_status_id,                    // p_order_status_id
             delivery_date,                      // p_delivery_date
+            requested_delivery_date,                      // requested_delivery_date
             delivery_time,                      // p_delivery_time
             sub_total,                          // p_sub_total
             service_charge,                     // p_service_charge
@@ -145,10 +148,11 @@ const create_order = async (req, res) => {
             total_amt,                          // p_total_amt
             discount_amt,                       // p_discount_amt
             net_total,                          // p_net_total
+            is_express_delivery,                          // is_express_delivery
             JSON.stringify(order_items)         // p_order_items
         ]);
 
-        return successResponse(res, 'Order created successfully', result, 201);
+        return successResponse(res, 'Order created successfully', result, 200);
 
 
     } catch (error) {

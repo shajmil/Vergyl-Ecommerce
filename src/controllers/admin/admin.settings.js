@@ -17,7 +17,9 @@ const get_settings = async (req, res) => {
 const add_settings = async (req, res) => {
     try {
         
-        const { id,service_charge,purchase_limit,max_items_in_request } = req.body;
+        const { id,service_charge,purchase_limit,max_items_in_request,
+            express_delivery_end_time,normal_delivery_charge,express_delivery_charge
+         } = req.body;
         const admin_id = req.user.user_id;
 
         const result = await executeTransaction('add_settings', [
@@ -25,6 +27,9 @@ const add_settings = async (req, res) => {
             service_charge,
             purchase_limit,
             max_items_in_request,
+            express_delivery_end_time,
+            normal_delivery_charge,
+            express_delivery_charge,
             admin_id
         ]);
 
