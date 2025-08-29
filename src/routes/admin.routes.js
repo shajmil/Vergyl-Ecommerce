@@ -14,12 +14,13 @@ const {
 } = require('../controllers/admin/order.controller');
 
 router.get('/orders', get_all_orders);
-router.get('/orders/:id', get_admin_order_details);
-router.put('/orders/:id/status', update_order_status);
+router.get('/orders/get_order_details', get_admin_order_details);
 router.put('/orders/:id/schedule', update_order_schedule);
 router.post('/orders/:id/items', manage_order_items);
 router.delete('/orders/:id', delete_order);
 router.get('/orders/:id/history', get_order_history);
+router.put('/orders/update_order_status', update_order_status);
+
 
 // Product management
 const {

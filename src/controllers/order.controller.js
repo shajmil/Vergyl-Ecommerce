@@ -12,6 +12,17 @@ const get_all_orders = async (req, res) => {
         return errorResponse(res, 'Failed to fetch orders', 500);
     }
 };
+const get_user_orders = async (req, res) => {
+    try {
+        let user_id = req.user.user_id;
+        const result = await getmultipleSP('get_user_orders',
+            [ user_id ]);
+        return successResponse(res, 'Orders retrieved successfully', result[0]);
+    } catch (error) {
+            console.error('Get all orders error:', error);
+        return errorResponse(res, 'Failed to fetch orders', 500);
+    }
+};
 const get_not_deliverable_dates = async (req, res) => {
 
     try {
@@ -58,28 +69,8 @@ const get_order_details = async (req, res) => {
     }
 };
 
-const update_order_delivery = async (req, res) => {
-    try {
-        const user_id = req.user.user_id;
-        const order_id = req.params.id;
-        const { delivery_time } = req.body;
 
-        const result = await executeTransaction('update_order_delivery', [
-            order_id,
-            user_id,
-            delivery_time
-        ]);
 
-        if (!result.updated) {
-            return errorResponse(res, 'Order not found', 404);
-        }
-
-        return successResponse(res, 'Order delivery time updated successfully', result.order);
-    } catch (error) {
-        console.error('Update order delivery error:', error);
-        return errorResponse(res, 'Failed to update order delivery time', 500);
-    }
-};
 
 // src/controllers/order.controller.js
 // Add this new method
@@ -126,6 +117,7 @@ const create_order = async (req, res) => {
             discount_amt,
             net_total,
             is_express_delivery,
+            address_line,city,state,country,latitude,longitude,zip_code,
             order_items
         } = order_data;
 
@@ -149,8 +141,10 @@ const create_order = async (req, res) => {
             discount_amt,                       // p_discount_amt
             net_total,                          // p_net_total
             is_express_delivery,                          // is_express_delivery
+            address_line,city,state,country,latitude,longitude,zip_code,
             JSON.stringify(order_items)         // p_order_items
         ]);
+        
 
         return successResponse(res, 'Order created successfully', result, 200);
 
@@ -165,8 +159,8 @@ const create_order = async (req, res) => {
 module.exports = {
     create_order,
     get_all_orders,
+    get_user_orders,
     get_order_details,
-    update_order_delivery,
     delete_order,
     get_order_history,
     get_not_deliverable_dates,

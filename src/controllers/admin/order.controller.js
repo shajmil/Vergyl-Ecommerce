@@ -1,5 +1,6 @@
 const { executeTransaction, getmultipleSP } = require('../../helpers/sp-caller');
 const { successResponse, errorResponse } = require('../../helpers/response.helper');
+const { sendNotificationToTopic } = require('./firebase.controller');
 
 const get_all_orders = async (req, res) => {
     try {
@@ -29,49 +30,22 @@ const get_all_orders = async (req, res) => {
 
 const get_admin_order_details = async (req, res) => {
     try {
-        const order_id = req.params.id;
+    
+        const { order_id } = req.query;
         const result = await getmultipleSP('get_order_details', [order_id]);
         
         if (!result[0] || result[0].length === 0) {
             return errorResponse(res, 'Order not found', 404);
         }
 
-        // const orderDetails = {
-        //     ...result[0][0],
-        //     items: result[1],
-        //     customer: result[2][0],
-        //     address: result[3][0]
-        // };
-        const orderDetails = { 
-            ...result[0][0],
-            items: result[1]
-        };
 
-        return successResponse(res, 'Order details retrieved successfully', orderDetails);
+        return successResponse(res, 'Order details retrieved successfully', result[0]);
     } catch (error) {
         console.error('Get admin order details error:', error);
         return errorResponse(res, 'Failed to fetch order details', 500);
     }
 };
 
-const update_order_status = async (req, res) => {
-    try {
-        const order_id = req.params.id;
-        const { status } = req.body;
-        const admin_id = req.user.user_id;
-
-        const result = await executeTransaction('update_order_status', [
-            order_id,
-            status,
-            admin_id
-        ]);
-
-        return successResponse(res, 'Order status updated successfully', result);
-    } catch (error) {
-        console.error('Update order status error:', error);
-        return errorResponse(res, 'Failed to update order status', 500);
-    }
-};
 
 const update_order_schedule = async (req, res) => {
     try {
@@ -166,7 +140,35 @@ const get_order_history = async (req, res) => {
         return errorResponse(res, 'Failed to fetch order history', 500);
     }
 };
+const update_order_status = async (req, res) => {
+    try {
+        const { status,description,order_id ,customer_id} = req.body;
+        const admin_id = req.user.user_id;
 
+        const result = await executeTransaction('update_order_status', [
+            order_id,
+            status,description,
+            admin_id
+        ]);
+             const data = {
+                order_id: order_id.toString(),
+                timestamp: new Date().toISOString()
+        };
+        
+
+        const notificationResult = await sendNotificationToTopic("userId_"+customer_id, 'Order '+status, description, data);
+        
+        if (notificationResult.success) {
+            console.log(`Notification sent successfully `);
+        } else {
+            console.error(`Failed to send notification `, result.error);
+        }
+        return successResponse(res, 'Order status updated successfully', result);
+    } catch (error) {
+        console.error('Update order status error:', error);
+        return errorResponse(res, 'Failed to update order status', 500);
+    }
+};
 module.exports = {
     get_all_orders,
     get_admin_order_details,
