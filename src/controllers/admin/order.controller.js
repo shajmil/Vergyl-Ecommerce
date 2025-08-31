@@ -151,6 +151,7 @@ const update_order_status = async (req, res) => {
             admin_id
         ]);
              const data = {
+                type: "order",
                 order_id: order_id.toString(),
                 timestamp: new Date().toISOString()
         };
