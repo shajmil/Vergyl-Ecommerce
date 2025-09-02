@@ -15,7 +15,7 @@ const get_addresses = async (req, res) => {
 const add_address = async (req, res) => {
     try {
         const user_id = req.user.user_id;
-        const { address_line, city, state, zip_code, country } = req.body;
+        const { address_line, city, state, zip_code, country,latitude,longitude } = req.body;
 
         const result = await executeTransaction('add_address', [
             user_id,
@@ -23,7 +23,9 @@ const add_address = async (req, res) => {
             city,
             state,
             zip_code,
-            country
+            country,
+            latitude,longitude
+
         ]);
 
         return successResponse(res, 'Address added successfully', result, 201);
