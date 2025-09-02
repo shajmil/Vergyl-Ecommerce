@@ -90,14 +90,14 @@ async function checkApiHealth() {
     }
 }
 
-// Schedule cron job to run every 5 minutes
-cron.schedule('*/5 * * * *', () => {
-    console.log(`[${new Date().toISOString()}] Running scheduled API health check`);
-    checkApiHealth();
-});
+// // Schedule cron job to run every 5 minutes
+// cron.schedule('*/5 * * * *', () => {
+//     console.log(`[${new Date().toISOString()}] Running scheduled API health check`);
+//     checkApiHealth();
+// });
 
-// Initial check when the script starts
-checkApiHealth();
+// // Initial check when the script starts
+// checkApiHealth();
  
 
 // Start server
