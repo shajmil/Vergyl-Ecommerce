@@ -11,7 +11,7 @@ const {
 } = require('../controllers/order.controller');
 
 router.post('/create_order', create_order);
-router.get('/get_user_orders', get_user_orders);
+router.post('/get_user_orders', get_user_orders);
 router.get('/get_all_orders', get_all_orders);
 router.get('/get_not_deliverable_dates', get_not_deliverable_dates);
 router.get('/get_order_details', get_order_details);

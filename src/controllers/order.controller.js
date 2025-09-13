@@ -15,8 +15,9 @@ const get_all_orders = async (req, res) => {
 const get_user_orders = async (req, res) => {
     try {
         let user_id = req.user.user_id;
+        const status_list = req.body.status_list;
         const result = await getmultipleSP('get_user_orders',
-            [ user_id ]);
+            [ user_id ,status_list]);
         return successResponse(res, 'Orders retrieved successfully', result[0]);
     } catch (error) {
             console.error('Get all orders error:', error);
